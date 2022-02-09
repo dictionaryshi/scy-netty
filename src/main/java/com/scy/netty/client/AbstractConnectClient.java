@@ -18,9 +18,9 @@ public abstract class AbstractConnectClient {
 
     private static final ConcurrentMap<String, Object> CONNECT_CLIENT_LOCK_MAP = new ConcurrentHashMap<>();
 
-    private static final ConcurrentMap<String, AbstractConnectClient> CONNECT_CLIENT_MAP = new ConcurrentHashMap<>();
+    private static volatile ConcurrentMap<String, AbstractConnectClient> CONNECT_CLIENT_MAP;
 
-    public abstract void init(String address) throws Exception;
+    public abstract void init(String address, ClientConfig clientConfig) throws Exception;
 
     public abstract void close();
 
@@ -28,13 +28,22 @@ public abstract class AbstractConnectClient {
 
     public abstract void send(Object data) throws Exception;
 
-    public static void asyncSend(String address, Class<? extends AbstractConnectClient> connectClientClass, Object data) throws Exception {
-        AbstractConnectClient clientPool = AbstractConnectClient.getPool(address, connectClientClass);
+    public static void asyncSend(String address, ClientConfig clientConfig, Object data) throws Exception {
+        AbstractConnectClient clientPool = AbstractConnectClient.getPool(address, clientConfig);
 
         clientPool.send(data);
     }
 
-    private static AbstractConnectClient getPool(String address, Class<? extends AbstractConnectClient> connectClientClass) throws Exception {
+    private static AbstractConnectClient getPool(String address, ClientConfig clientConfig) throws Exception {
+        if (ObjectUtil.isNull(CONNECT_CLIENT_MAP)) {
+            synchronized (AbstractConnectClient.class) {
+                if (ObjectUtil.isNull(CONNECT_CLIENT_MAP)) {
+                    CONNECT_CLIENT_MAP = new ConcurrentHashMap<>();
+                    clientConfig.addBeforeStopCallback(AbstractConnectClient::closeConnectClient);
+                }
+            }
+        }
+
         AbstractConnectClient connectClient = CONNECT_CLIENT_MAP.get(address);
         if (!ObjectUtil.isNull(connectClient) && connectClient.isValidate()) {
             return connectClient;
@@ -57,8 +66,8 @@ public abstract class AbstractConnectClient {
                 CONNECT_CLIENT_MAP.remove(address);
             }
 
-            AbstractConnectClient connectClientNew = connectClientClass.newInstance();
-            connectClientNew.init(address);
+            AbstractConnectClient connectClientNew = clientConfig.getConnectClientClass().newInstance();
+            connectClientNew.init(address, clientConfig);
             CONNECT_CLIENT_MAP.put(address, connectClientNew);
 
             return connectClientNew;
