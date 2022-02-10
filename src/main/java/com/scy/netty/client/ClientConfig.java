@@ -24,14 +24,14 @@ public class ClientConfig {
 
     private Class<? extends AbstractConnectClient> connectClientClass;
 
-    private List<Runnable> stoppedCallbacks = new ArrayList<>();
+    private List<Runnable> stopCallbacks = new ArrayList<>();
 
-    public void addStoppedCallback(Runnable stoppedCallback) {
-        stoppedCallbacks.add(stoppedCallback);
+    public void addStopCallback(Runnable stopCallback) {
+        stopCallbacks.add(stopCallback);
     }
 
     public void stop() throws Exception {
-        for (Runnable stopCallback : stoppedCallbacks) {
+        for (Runnable stopCallback : stopCallbacks) {
             try {
                 stopCallback.run();
             } catch (Exception e) {
