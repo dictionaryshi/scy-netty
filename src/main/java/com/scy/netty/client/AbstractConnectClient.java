@@ -39,7 +39,7 @@ public abstract class AbstractConnectClient {
             synchronized (AbstractConnectClient.class) {
                 if (ObjectUtil.isNull(CONNECT_CLIENT_MAP)) {
                     CONNECT_CLIENT_MAP = new ConcurrentHashMap<>();
-                    clientConfig.addBeforeStopCallback(AbstractConnectClient::closeConnectClient);
+                    clientConfig.addStopCallback(AbstractConnectClient::closeConnectClient);
                 }
             }
         }
