@@ -52,7 +52,11 @@ public class PacketCodeUtil {
         byteBuf.readBytes(bytes);
 
         if (Objects.equals(serializeAlgorithm, SERIALIZER_HESSIAN)) {
-            return HessianUtil.deserialize(bytes);
+            AbstractPacket packet = HessianUtil.deserialize(bytes);
+            if (ObjectUtil.isNull(packet)) {
+                throw new BusinessException("PacketCodeUtil decode error");
+            }
+            return packet;
         }
 
         throw new BusinessException(MessageUtil.format("PacketCodeUtil decode error", "serializeAlgorithm", serializeAlgorithm));
