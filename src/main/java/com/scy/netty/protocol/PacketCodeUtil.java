@@ -24,7 +24,7 @@ public class PacketCodeUtil {
 
     public static final byte SERIALIZER_HESSIAN = 1;
 
-    public void encode(ByteBuf byteBuf, AbstractPacket packet) {
+    public static void encode(ByteBuf byteBuf, AbstractPacket packet) {
         byteBuf.writeInt(MAGIC_NUMBER);
 
         byteBuf.writeByte(SERIALIZER_HESSIAN);
@@ -38,7 +38,7 @@ public class PacketCodeUtil {
         byteBuf.writeBytes(bytes);
     }
 
-    public AbstractPacket decode(ByteBuf byteBuf) {
+    public static AbstractPacket decode(ByteBuf byteBuf) {
         // 跳过 magic number
         byteBuf.skipBytes(4);
 
