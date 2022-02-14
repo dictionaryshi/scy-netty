@@ -37,7 +37,7 @@ public class CodeHandler extends IdleStateHandler {
             log.info(MessageUtil.format("心跳 channelIdle", "spacing", READER_IDLE_TIME));
         } else {
             long spacing = System.currentTimeMillis() - lastReadTime;
-            log.info(MessageUtil.format("心跳channelIdle", "spacing", DateUtil.millisecond2Second(spacing)));
+            log.info(MessageUtil.format("心跳 channelIdle", "spacing", DateUtil.millisecond2Second(spacing)));
         }
 
         ctx.channel().close();
