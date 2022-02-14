@@ -12,6 +12,10 @@ import io.netty.util.AttributeKey;
  */
 public class NettyConstant {
 
+    public static final int HEARTBEAT_REQUEST = 1;
+
+    public static final int HEARTBEAT_RESPONSE = 2;
+
     public static final AttributeKey<Session> SESSION = AttributeKey.newInstance("session");
 
     public static final AttributeKey<Long> LAST_READ_TIME = AttributeKey.newInstance("lastReadTime");
