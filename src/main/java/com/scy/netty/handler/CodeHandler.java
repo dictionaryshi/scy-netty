@@ -18,14 +18,14 @@ import java.util.concurrent.TimeUnit;
  * Date    : 2022/2/14
  * Time    : 4:48 下午
  * ---------------------------------------
- * Desc    : CodeHandler
+ * Desc    : NettyIdleStateHandler
  */
 @Slf4j
-public class CodeHandler extends IdleStateHandler {
+public class NettyIdleStateHandler extends IdleStateHandler {
 
     private static final int READER_IDLE_TIME = 30;
 
-    public CodeHandler() {
+    public NettyIdleStateHandler() {
         super(READER_IDLE_TIME, 0, 0, TimeUnit.SECONDS);
     }
 
