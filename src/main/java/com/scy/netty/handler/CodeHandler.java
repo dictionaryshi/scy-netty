@@ -3,6 +3,7 @@ package com.scy.netty.handler;
 import com.scy.netty.protocol.AbstractPacket;
 import com.scy.netty.protocol.PacketCodeUtil;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 
@@ -15,6 +16,7 @@ import java.util.List;
  * ---------------------------------------
  * Desc    : CodeHandler
  */
+@ChannelHandler.Sharable
 public class CodeHandler extends MessageToMessageCodec<ByteBuf, AbstractPacket> {
 
     public static final CodeHandler INSTANCE = new CodeHandler();
