@@ -1,6 +1,5 @@
 package com.scy.netty.server.handler;
 
-import com.scy.core.UUIDUtil;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.net.NetworkInterfaceUtil;
 import com.scy.netty.model.LoginRequestPacket;
@@ -11,10 +10,7 @@ import com.scy.netty.util.SessionUtil;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
-
-import java.net.InetSocketAddress;
 
 /**
  * @author : shichunyang
