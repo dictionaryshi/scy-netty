@@ -24,6 +24,10 @@ public class NettyConstant {
 
     public static final int LOGOUT_RESPONSE = 6;
 
+    public static final int MESSAGE_REQUEST = 7;
+
+    public static final int MESSAGE_RESPONSE = 8;
+
     public static final AttributeKey<Session> SESSION = AttributeKey.newInstance("session");
 
     public static final AttributeKey<Long> LAST_READ_TIME = AttributeKey.newInstance("lastReadTime");
