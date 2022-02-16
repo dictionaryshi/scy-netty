@@ -75,7 +75,7 @@ public class NettyClient extends AbstractConnectClient {
             }
         }
 
-        HeartBeatTimerHandler heartBeatTimerHandler = new HeartBeatTimerHandler(this);
+        NettyClient nettyClient = this;
 
         bootstrap = new Bootstrap();
         bootstrap
@@ -93,7 +93,7 @@ public class NettyClient extends AbstractConnectClient {
                         socketChannel.pipeline().addLast(CodeHandler.INSTANCE);
                         socketChannel.pipeline().addLast(ClientHandlers.INSTANCE);
                         // 心跳定时器
-                        socketChannel.pipeline().addLast(heartBeatTimerHandler);
+                        socketChannel.pipeline().addLast(new HeartBeatTimerHandler(nettyClient));
                         socketChannel.pipeline().addLast(ExceptionHandler.INSTANCE);
                     }
                 });
