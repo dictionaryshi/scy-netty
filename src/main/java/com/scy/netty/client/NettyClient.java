@@ -10,6 +10,7 @@ import com.scy.core.net.NetworkInterfaceUtil;
 import com.scy.netty.client.handler.ClientHandlers;
 import com.scy.netty.client.handler.HeartBeatTimerHandler;
 import com.scy.netty.handler.CodeHandler;
+import com.scy.netty.handler.ExceptionHandler;
 import com.scy.netty.handler.NettyIdleStateHandler;
 import com.scy.netty.protocol.DecodeSpliter;
 import io.netty.bootstrap.Bootstrap;
@@ -30,14 +31,16 @@ import java.util.concurrent.TimeUnit;
  * ---------------------------------------
  * Desc    : NettyClient
  */
-@Getter
 @Slf4j
+@Getter
 public class NettyClient extends AbstractConnectClient {
 
     /**
      * 所有客户端公用
      */
     private static volatile EventLoopGroup workerGroup;
+
+    private volatile Bootstrap bootstrap;
 
     private volatile boolean closed = Boolean.FALSE;
 
@@ -47,7 +50,7 @@ public class NettyClient extends AbstractConnectClient {
 
     private volatile int port;
 
-    public static final int MAX_RETRY = 3;
+    public static final int MAX_RETRY = 2;
 
     @Override
     public void init(String address, ClientConfig clientConfig) throws Exception {
@@ -72,7 +75,9 @@ public class NettyClient extends AbstractConnectClient {
             }
         }
 
-        Bootstrap bootstrap = new Bootstrap();
+        HeartBeatTimerHandler heartBeatTimerHandler = new HeartBeatTimerHandler(this);
+
+        bootstrap = new Bootstrap();
         bootstrap
                 .group(workerGroup)
                 .channel(NioSocketChannel.class)
@@ -88,12 +93,13 @@ public class NettyClient extends AbstractConnectClient {
                         socketChannel.pipeline().addLast(CodeHandler.INSTANCE);
                         socketChannel.pipeline().addLast(ClientHandlers.INSTANCE);
                         // 心跳定时器
-                        socketChannel.pipeline().addLast(new HeartBeatTimerHandler());
+                        socketChannel.pipeline().addLast(heartBeatTimerHandler);
+                        socketChannel.pipeline().addLast(ExceptionHandler.INSTANCE);
                     }
                 });
 
         // 建立连接
-        connect(bootstrap, host, port, 0);
+        connect(NumberUtil.ZERO.intValue());
     }
 
     @Override
@@ -125,13 +131,14 @@ public class NettyClient extends AbstractConnectClient {
         }
     }
 
-    public void connect(Bootstrap bootstrap, String host, int port, int retry) {
+    public void connect(int retry) {
         if (closed) {
             return;
         }
 
         try {
             channel = bootstrap.connect(host, port).sync().channel();
+            log.info(MessageUtil.format("netty client connect success", "host", host, "port", port));
             return;
         } catch (Exception e) {
             log.error(MessageUtil.format("netty client connect fail", e, "host", host, "port", port));
@@ -146,6 +153,6 @@ public class NettyClient extends AbstractConnectClient {
 
         // 重连间隔
         int delay = 1 << order;
-        bootstrap.config().group().schedule(() -> connect(bootstrap, host, port, retry - 1), delay, TimeUnit.SECONDS);
+        bootstrap.config().group().schedule(() -> connect(retry - 1), delay, TimeUnit.SECONDS);
     }
 }
