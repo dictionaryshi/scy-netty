@@ -132,6 +132,7 @@ public class NettyClient extends AbstractConnectClient {
 
         try {
             channel = bootstrap.connect(host, port).sync().channel();
+            return;
         } catch (Exception e) {
             log.error(MessageUtil.format("netty client connect fail", e, "host", host, "port", port));
         }
