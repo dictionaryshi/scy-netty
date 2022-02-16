@@ -145,7 +145,9 @@ public class NettyClient extends AbstractConnectClient {
         }
 
         if (Objects.equals(retry, NumberUtil.ZERO.intValue())) {
-            throw new BusinessException(MessageUtil.format("netty client connect fail", "host", host, "port", port));
+            String message = MessageUtil.format("netty client connect fail", "host", host, "port", port, "retry", retry);
+            log.error(message);
+            throw new BusinessException(message);
         }
 
         int order = (MAX_RETRY - retry) + 1;
