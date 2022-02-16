@@ -2,7 +2,6 @@ package com.scy.netty.client.handler;
 
 import com.scy.netty.constant.NettyConstant;
 import com.scy.netty.protocol.AbstractPacket;
-import com.scy.netty.util.SessionUtil;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -29,13 +28,5 @@ public class ClientHandlers extends SimpleChannelInboundHandler<AbstractPacket> 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, AbstractPacket packet) throws Exception {
         handlerMap.get(packet.getCommand()).channelRead(ctx, packet);
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        boolean flag = SessionUtil.unBindSession(ctx.channel());
-        if (flag) {
-            ctx.channel().close();
-        }
     }
 }
