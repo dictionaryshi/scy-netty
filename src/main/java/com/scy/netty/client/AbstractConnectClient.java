@@ -1,6 +1,9 @@
 package com.scy.netty.client;
 
 import com.scy.core.ObjectUtil;
+import io.netty.channel.ChannelFuture;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,12 +29,17 @@ public abstract class AbstractConnectClient {
 
     public abstract boolean isValidate();
 
-    public abstract void send(Object data) throws Exception;
+    public abstract ChannelFuture send(Object data) throws Exception;
 
-    public static void asyncSend(String address, ClientConfig clientConfig, Object data) throws Exception {
+    public static void asyncSend(
+            String address,
+            ClientConfig clientConfig,
+            Object data,
+            GenericFutureListener<? extends Future<? super Void>> listener
+    ) throws Exception {
         AbstractConnectClient clientPool = AbstractConnectClient.getPool(address, clientConfig);
 
-        clientPool.send(data);
+        clientPool.send(data).addListener(listener);
     }
 
     private static AbstractConnectClient getPool(String address, ClientConfig clientConfig) throws Exception {
