@@ -1,13 +1,22 @@
 package com.scy.netty.client;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.scy.core.ObjectUtil;
 import com.scy.core.exception.BusinessException;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.format.NumberUtil;
+import com.scy.core.model.UrlBO;
+import com.scy.core.net.NetworkInterfaceUtil;
+import com.scy.netty.client.handler.ClientHandlers;
+import com.scy.netty.client.handler.HeartBeatTimerHandler;
+import com.scy.netty.handler.CodeHandler;
+import com.scy.netty.handler.NettyIdleStateHandler;
+import com.scy.netty.protocol.DecodeSpliter;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -32,6 +41,10 @@ public class NettyClient extends AbstractConnectClient {
 
     private volatile Channel channel;
 
+    private volatile String host;
+
+    private volatile int port;
+
     public static final int MAX_RETRY = 3;
 
     @Override
@@ -39,6 +52,46 @@ public class NettyClient extends AbstractConnectClient {
         if (closed) {
             return;
         }
+
+        UrlBO urlBO = NetworkInterfaceUtil.parseIpPort(address);
+        if (ObjectUtil.isNull(urlBO)) {
+            throw new BusinessException(MessageUtil.format("NettyClient init error, address解析失败", "address", address));
+        }
+
+        this.host = urlBO.getHost();
+        this.port = urlBO.getPort();
+
+        if (ObjectUtil.isNull(workerGroup)) {
+            synchronized (NettyClient.class) {
+                if (ObjectUtil.isNull(workerGroup)) {
+                    workerGroup = new NioEventLoopGroup(new ThreadFactoryBuilder().setNameFormat("netty-client-thread-pool-%d").build());
+                    clientConfig.addStopCallback(NettyClient::shutdown);
+                }
+            }
+        }
+
+        Bootstrap bootstrap = new Bootstrap();
+        bootstrap
+                .group(workerGroup)
+                .channel(NioSocketChannel.class)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.TCP_NODELAY, true)
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    public void initChannel(SocketChannel socketChannel) {
+                        // 空闲检测
+                        socketChannel.pipeline().addLast(new NettyIdleStateHandler());
+                        socketChannel.pipeline().addLast(new DecodeSpliter());
+                        socketChannel.pipeline().addLast(CodeHandler.INSTANCE);
+                        socketChannel.pipeline().addLast(ClientHandlers.INSTANCE);
+                        // 心跳定时器
+                        socketChannel.pipeline().addLast(new HeartBeatTimerHandler());
+                    }
+                });
+
+        // 建立连接
+        connect(bootstrap, host, port, 0);
     }
 
     @Override
@@ -82,8 +135,7 @@ public class NettyClient extends AbstractConnectClient {
         }
 
         if (Objects.equals(retry, NumberUtil.ZERO.intValue())) {
-            log.info(MessageUtil.format("netty client reconnect fail", "host", host, "port", port));
-            return;
+            throw new BusinessException(MessageUtil.format("netty client connect fail", "host", host, "port", port));
         }
 
         int order = (MAX_RETRY - retry) + 1;
