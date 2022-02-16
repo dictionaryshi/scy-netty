@@ -17,6 +17,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeUnit;
  * ---------------------------------------
  * Desc    : NettyClient
  */
+@Getter
 @Slf4j
 public class NettyClient extends AbstractConnectClient {
 
