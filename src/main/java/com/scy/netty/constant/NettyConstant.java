@@ -28,6 +28,10 @@ public class NettyConstant {
 
     public static final int MESSAGE_RESPONSE = 8;
 
+    public static final int RPC_REQUEST = 9;
+
+    public static final int RPC_RESPONSE = 10;
+
     public static final AttributeKey<Session> SESSION = AttributeKey.newInstance("session");
 
     public static final AttributeKey<Long> LAST_READ_TIME = AttributeKey.newInstance("lastReadTime");

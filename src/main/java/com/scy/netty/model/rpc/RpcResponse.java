@@ -1,5 +1,7 @@
 package com.scy.netty.model.rpc;
 
+import com.scy.netty.constant.NettyConstant;
+import com.scy.netty.protocol.AbstractPacket;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -16,7 +18,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-public class RpcResponse<T> implements Serializable {
+public class RpcResponse<T> extends AbstractPacket implements Serializable {
 
     private boolean success;
 
@@ -25,4 +27,9 @@ public class RpcResponse<T> implements Serializable {
     private String message;
 
     private T data;
+
+    @Override
+    public int getCommand() {
+        return NettyConstant.RPC_RESPONSE;
+    }
 }
