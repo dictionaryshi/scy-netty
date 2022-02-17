@@ -18,9 +18,11 @@ import java.io.Serializable;
 @ToString
 public class RpcResponse<T> implements Serializable {
 
+    private boolean success;
+
     private String requestId;
 
     private String message;
 
-    private T result;
+    private T data;
 }
