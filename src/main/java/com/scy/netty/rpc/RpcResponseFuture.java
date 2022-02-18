@@ -5,10 +5,7 @@ import com.scy.core.format.MessageUtil;
 import com.scy.netty.model.rpc.RpcRequest;
 import com.scy.netty.model.rpc.RpcResponse;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
  * @author : shichunyang
@@ -30,6 +27,12 @@ public class RpcResponseFuture<T> implements Future<RpcResponse<T>> {
     private volatile boolean done = Boolean.FALSE;
 
     private final Object lock = new Object();
+
+    public RpcResponseFuture(RpcRequest rpcRequest) {
+        this.rpcRequest = rpcRequest;
+
+        RpcResponseFutureUtil.addRpcResponseFuture(rpcRequest.getRequestId(), this);
+    }
 
     public Throwable getThrowable() {
         return throwable;
