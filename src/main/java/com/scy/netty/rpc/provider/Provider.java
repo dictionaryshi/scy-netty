@@ -2,6 +2,7 @@ package com.scy.netty.rpc.provider;
 
 import com.scy.core.ArrayUtil;
 import com.scy.core.CollectionUtil;
+import com.scy.core.StringUtil;
 import com.scy.core.exception.BusinessException;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.spring.ApplicationContextUtil;
@@ -46,6 +47,16 @@ public class Provider implements ApplicationContextAware {
     }
 
     public static String getThreadPoolName(String interfaceName, String version) {
+        if (StringUtil.isEmpty(version)) {
+            return interfaceName.concat("-rpc-pool");
+        }
         return interfaceName.concat("-").concat(version).concat("-rpc-pool");
+    }
+
+    public static String getServiceKey(String interfaceName, String version) {
+        if (StringUtil.isEmpty(version)) {
+            return interfaceName;
+        }
+        return interfaceName.concat("-").concat(version);
     }
 }
