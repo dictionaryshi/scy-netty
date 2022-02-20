@@ -9,6 +9,7 @@ import java.lang.annotation.*;
  * ---------------------------------------
  * Desc    : RpcService
  */
+@Inherited
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RpcService {

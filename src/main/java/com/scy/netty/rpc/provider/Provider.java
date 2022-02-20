@@ -15,6 +15,7 @@ import org.springframework.context.ApplicationContextAware;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 /**
@@ -25,6 +26,12 @@ import java.util.stream.Stream;
  * Desc    : Provider
  */
 public class Provider implements ApplicationContextAware {
+
+    private static final Map<String, Object> SERVICE_MAP = new ConcurrentHashMap<>();
+
+    public static Map<String, Object> getServiceMap() {
+        return SERVICE_MAP;
+    }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -49,6 +56,9 @@ public class Provider implements ApplicationContextAware {
 
             Method[] methods = serviceBean.getClass().getDeclaredMethods();
             Stream.of(methods).forEach(MethodUtil::putMethod);
+
+            String serviceKey = getServiceKey(interfaceName, rpcService.version());
+            SERVICE_MAP.put(serviceKey, serviceBean);
         });
     }
 
