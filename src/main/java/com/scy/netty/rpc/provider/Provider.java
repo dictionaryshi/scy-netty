@@ -1,17 +1,16 @@
 package com.scy.netty.rpc.provider;
 
 import com.scy.core.ArrayUtil;
-import com.scy.core.CollectionUtil;
+import com.scy.core.ObjectUtil;
 import com.scy.core.StringUtil;
 import com.scy.core.exception.BusinessException;
 import com.scy.core.format.MessageUtil;
+import com.scy.core.reflect.AnnotationUtil;
 import com.scy.core.reflect.MethodUtil;
-import com.scy.core.spring.ApplicationContextUtil;
 import com.scy.core.thread.ThreadPoolUtil;
 import com.scy.netty.rpc.provider.annotation.RpcService;
 import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -25,7 +24,11 @@ import java.util.stream.Stream;
  * ---------------------------------------
  * Desc    : Provider
  */
-public class Provider implements ApplicationContextAware {
+public class Provider implements BeanPostProcessor {
+
+    private final Map<String, String> SERVICE_INTERFACE_NAME = new ConcurrentHashMap<>();
+
+    private final Map<String, Method[]> SERVICE_METHODS = new ConcurrentHashMap<>();
 
     private static final Map<String, Object> SERVICE_MAP = new ConcurrentHashMap<>();
 
@@ -34,32 +37,44 @@ public class Provider implements ApplicationContextAware {
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        ApplicationContextUtil.setApplicationContext(applicationContext);
-
-        Map<String, Object> serviceBeanMap = ApplicationContextUtil.getBeansWithAnnotation(RpcService.class);
-        if (CollectionUtil.isEmpty(serviceBeanMap)) {
-            return;
+    public Object postProcessBeforeInitialization(Object serviceBean, String beanName) throws BeansException {
+        RpcService rpcService = AnnotationUtil.findAnnotation(serviceBean.getClass(), RpcService.class);
+        if (ObjectUtil.isNull(rpcService)) {
+            return serviceBean;
         }
 
-        serviceBeanMap.values().forEach(serviceBean -> {
-            if (ArrayUtil.isEmpty(serviceBean.getClass().getInterfaces())) {
-                throw new BusinessException(MessageUtil.format("rpc服务必须继承接口", "className", serviceBean.getClass().getName()));
-            }
+        if (ArrayUtil.isEmpty(serviceBean.getClass().getInterfaces())) {
+            throw new BusinessException(MessageUtil.format("rpc服务必须继承接口", "className", serviceBean.getClass().getName()));
+        }
 
-            String interfaceName = serviceBean.getClass().getInterfaces()[0].getName();
+        String interfaceName = serviceBean.getClass().getInterfaces()[0].getName();
+        SERVICE_INTERFACE_NAME.put(beanName, interfaceName);
 
-            RpcService rpcService = serviceBean.getClass().getAnnotation(RpcService.class);
+        Method[] methods = serviceBean.getClass().getDeclaredMethods();
+        SERVICE_METHODS.put(beanName, methods);
 
-            String threadPoolName = getThreadPoolName(interfaceName, rpcService.version());
-            ThreadPoolUtil.getThreadPool(threadPoolName, rpcService.corePoolSize(), rpcService.maximumPoolSize(), rpcService.queueSize());
+        return serviceBean;
+    }
 
-            Method[] methods = serviceBean.getClass().getDeclaredMethods();
-            Stream.of(methods).forEach(MethodUtil::putMethod);
+    @Override
+    public Object postProcessAfterInitialization(Object serviceBean, String beanName) throws BeansException {
+        RpcService rpcService = AnnotationUtil.findAnnotation(serviceBean.getClass(), RpcService.class);
+        if (ObjectUtil.isNull(rpcService)) {
+            return serviceBean;
+        }
 
-            String serviceKey = getServiceKey(interfaceName, rpcService.version());
-            SERVICE_MAP.put(serviceKey, serviceBean);
-        });
+        String interfaceName = SERVICE_INTERFACE_NAME.get(beanName);
+
+        String threadPoolName = getThreadPoolName(interfaceName, rpcService.version());
+        ThreadPoolUtil.getThreadPool(threadPoolName, rpcService.corePoolSize(), rpcService.maximumPoolSize(), rpcService.queueSize());
+
+        String serviceKey = getServiceKey(interfaceName, rpcService.version());
+        SERVICE_MAP.put(serviceKey, serviceBean);
+
+        Method[] methods = SERVICE_METHODS.get(beanName);
+        Stream.of(methods).forEach(method -> MethodUtil.getMethod(serviceBean.getClass(), method.getName(), method.getParameterTypes()));
+
+        return serviceBean;
     }
 
     public static String getThreadPoolName(String interfaceName, String version) {
