@@ -16,4 +16,9 @@ public class RpcConfig {
     public Provider provider() {
         return new Provider();
     }
+
+    @Bean
+    public ServerStart serverStart() {
+        return new ServerStart();
+    }
 }
