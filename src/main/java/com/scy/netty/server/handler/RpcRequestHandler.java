@@ -30,6 +30,11 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcRequest> {
 
     public static final int TIME_OUT = 180_000;
 
+    public static final RpcRequestHandler INSTANCE = new RpcRequestHandler();
+
+    private RpcRequestHandler() {
+    }
+
     @Override
     public void channelRead0(ChannelHandlerContext ctx, RpcRequest rpcRequest) throws Exception {
         try {

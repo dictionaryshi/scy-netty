@@ -28,6 +28,7 @@ public class ServerHandlers extends SimpleChannelInboundHandler<AbstractPacket> 
 
         handlerMap.put(NettyConstant.LOGOUT_REQUEST, LogoutRequestHandler.INSTANCE);
         handlerMap.put(NettyConstant.MESSAGE_REQUEST, MessageRequestHandler.INSTANCE);
+        handlerMap.put(NettyConstant.RPC_REQUEST, RpcRequestHandler.INSTANCE);
     }
 
     @Override
