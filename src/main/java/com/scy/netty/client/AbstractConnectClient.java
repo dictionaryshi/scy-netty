@@ -23,23 +23,21 @@ public abstract class AbstractConnectClient {
 
     private static volatile ConcurrentMap<String, AbstractConnectClient> CONNECT_CLIENT_MAP;
 
-    public abstract void init(String address, ClientConfig clientConfig) throws Exception;
+    public abstract void init(String address, ClientConfig clientConfig);
 
     public abstract void close();
 
     public abstract boolean isValidate();
 
-    public abstract ChannelFuture send(Object data) throws Exception;
+    public abstract ChannelFuture send(Object data);
 
-    public static void asyncSend(
+    public static ChannelFuture asyncSend(
             String address,
             ClientConfig clientConfig,
-            Object data,
-            GenericFutureListener<? extends Future<? super Void>> listener
+            Object data
     ) throws Exception {
         AbstractConnectClient clientPool = AbstractConnectClient.getPool(address, clientConfig);
-
-        clientPool.send(data).addListener(listener);
+        return clientPool.send(data);
     }
 
     private static AbstractConnectClient getPool(String address, ClientConfig clientConfig) throws Exception {
