@@ -53,7 +53,7 @@ public class NettyClient extends AbstractConnectClient {
     public static final int MAX_RETRY = 2;
 
     @Override
-    public void init(String address, ClientConfig clientConfig) throws Exception {
+    public void init(String address, ClientConfig clientConfig) {
         if (closed) {
             return;
         }
@@ -117,7 +117,7 @@ public class NettyClient extends AbstractConnectClient {
     }
 
     @Override
-    public ChannelFuture send(Object data) throws Exception {
+    public ChannelFuture send(Object data) {
         if (isValidate()) {
             return this.channel.writeAndFlush(data);
         } else {
