@@ -30,7 +30,7 @@ public class ClientConfig {
         stopCallbacks.add(stopCallback);
     }
 
-    public void stop() throws Exception {
+    public void stop() {
         for (Runnable stopCallback : stopCallbacks) {
             try {
                 stopCallback.run();
