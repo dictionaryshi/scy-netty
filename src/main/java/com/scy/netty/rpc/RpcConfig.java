@@ -2,6 +2,7 @@ package com.scy.netty.rpc;
 
 import com.scy.netty.client.ClientConfig;
 import com.scy.netty.client.NettyClient;
+import com.scy.netty.rpc.consumer.Consumer;
 import com.scy.netty.rpc.provider.Provider;
 import org.springframework.context.annotation.Bean;
 
@@ -29,5 +30,10 @@ public class RpcConfig {
         ClientConfig clientConfig = new ClientConfig();
         clientConfig.setConnectClientClass(NettyClient.class);
         return clientConfig;
+    }
+
+    @Bean
+    public Consumer consumer(ClientConfig clientConfig) {
+        return new Consumer(clientConfig);
     }
 }
