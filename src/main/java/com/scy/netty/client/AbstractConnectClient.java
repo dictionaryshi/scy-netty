@@ -2,8 +2,6 @@ package com.scy.netty.client;
 
 import com.scy.core.ObjectUtil;
 import io.netty.channel.ChannelFuture;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ConcurrentHashMap;
