@@ -13,7 +13,6 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
@@ -59,6 +58,16 @@ public class Consumer implements BeanPostProcessor {
         }
 
         Object serviceProxy = ProxyUtil.newProxyInstance(fieldClass, (InvocationHandler) (proxy, method, args) -> {
+            String className = method.getDeclaringClass().getName();
+            String methodName = method.getName();
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            Object[] parameters = args;
+
+            if (className.equals(Object.class.getName())) {
+                throw new BusinessException(MessageUtil.format("method not support rpc", "className", className, "methodName", methodName));
+            }
+
+            return null;
         });
 
         field.setAccessible(Boolean.TRUE);
