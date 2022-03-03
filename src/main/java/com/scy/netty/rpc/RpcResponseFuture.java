@@ -1,5 +1,6 @@
 package com.scy.netty.rpc;
 
+import com.scy.core.ObjectUtil;
 import com.scy.core.exception.BusinessException;
 import com.scy.core.format.MessageUtil;
 import com.scy.netty.model.rpc.RpcRequest;
@@ -14,7 +15,7 @@ import java.util.concurrent.*;
  * ---------------------------------------
  * Desc    : RpcResponseFuture
  */
-public class RpcResponseFuture<T> implements Future<RpcResponse<T>> {
+public class RpcResponseFuture<T> implements Future<T> {
 
     private volatile Throwable throwable;
 
@@ -86,22 +87,35 @@ public class RpcResponseFuture<T> implements Future<RpcResponse<T>> {
     }
 
     @Override
-    public RpcResponse<T> get() throws InterruptedException, ExecutionException {
+    public T get() throws InterruptedException, ExecutionException {
         throw new BusinessException("prohibited methods");
     }
 
     @Override
-    public RpcResponse<T> get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        if (!done) {
-            synchronized (lock) {
-                long timeoutMillis = (TimeUnit.MILLISECONDS == unit) ? timeout : TimeUnit.MILLISECONDS.convert(timeout, unit);
-                lock.wait(timeoutMillis);
+    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        try {
+            if (!done) {
+                synchronized (lock) {
+                    long timeoutMillis = (TimeUnit.MILLISECONDS == unit) ? timeout : TimeUnit.MILLISECONDS.convert(timeout, unit);
+                    lock.wait(timeoutMillis);
+                }
             }
-        }
 
-        if (!done) {
-            throw new BusinessException(MessageUtil.format("rpc timeout", "rpcRequest", rpcRequest));
+            if (!done) {
+                throw new BusinessException(MessageUtil.format("rpc timeout", "rpcRequest", rpcRequest));
+            }
+
+            if (!ObjectUtil.isNull(throwable)) {
+                throw new BusinessException(MessageUtil.format("rpc response get fail", "rpcRequest", rpcRequest), throwable);
+            }
+
+            if (rpcResponse.isSuccess()) {
+                return rpcResponse.getData();
+            }
+
+            throw new BusinessException(rpcResponse.getMessage());
+        } finally {
+            RpcResponseFutureUtil.removeRpcResponseFuture(rpcRequest.getRequestId());
         }
-        return rpcResponse;
     }
 }

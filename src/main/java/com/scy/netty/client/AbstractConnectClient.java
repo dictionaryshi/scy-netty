@@ -38,7 +38,7 @@ public abstract class AbstractConnectClient {
         return clientPool.send(data);
     }
 
-    private static AbstractConnectClient getPool(String address, ClientConfig clientConfig) throws Exception {
+    public static AbstractConnectClient getPool(String address, ClientConfig clientConfig) throws Exception {
         if (ObjectUtil.isNull(CONNECT_CLIENT_MAP)) {
             synchronized (AbstractConnectClient.class) {
                 if (ObjectUtil.isNull(CONNECT_CLIENT_MAP)) {
