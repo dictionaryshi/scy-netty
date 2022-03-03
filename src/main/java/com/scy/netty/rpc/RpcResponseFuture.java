@@ -105,8 +105,8 @@ public class RpcResponseFuture<T> implements Future<T> {
                 throw new BusinessException(MessageUtil.format("rpc timeout", "rpcRequest", rpcRequest));
             }
 
-            if (ObjectUtil.isNull(throwable)) {
-                throw new BusinessException(MessageUtil.format("rpc fail", "rpcRequest", rpcRequest), throwable);
+            if (!ObjectUtil.isNull(throwable)) {
+                throw new BusinessException(MessageUtil.format("rpc response get fail", "rpcRequest", rpcRequest), throwable);
             }
 
             if (rpcResponse.isSuccess()) {
