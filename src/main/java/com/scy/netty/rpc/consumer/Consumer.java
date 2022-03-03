@@ -32,7 +32,7 @@ public class Consumer implements BeanPostProcessor {
     }
 
     @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         ReflectionsUtil.doWithFields(
                 bean.getClass(),
                 field -> fillProxyInstance(bean, field),
