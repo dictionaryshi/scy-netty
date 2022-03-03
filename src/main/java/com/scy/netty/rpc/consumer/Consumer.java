@@ -32,13 +32,13 @@ public class Consumer implements BeanPostProcessor {
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         ReflectionsUtil.doWithFields(
                 bean.getClass(),
-                this::fillProxyInstance,
+                field -> fillProxyInstance(bean, field),
                 field -> !Objects.isNull(AnnotationUtil.findAnnotation(field, RpcReference.class))
         );
         return bean;
     }
 
-    private void fillProxyInstance(Field field) {
+    private void fillProxyInstance(Object bean, Field field) {
         Class<?> fieldClass = field.getType();
         if (!fieldClass.isInterface()) {
             throw new BusinessException(MessageUtil.format("rpcReference not interface",
