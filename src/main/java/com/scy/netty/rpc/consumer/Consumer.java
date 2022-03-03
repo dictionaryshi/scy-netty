@@ -1,5 +1,6 @@
 package com.scy.netty.rpc.consumer;
 
+import com.scy.core.StringUtil;
 import com.scy.core.exception.BusinessException;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.format.NumberUtil;
@@ -49,22 +50,29 @@ public class Consumer implements BeanPostProcessor {
 
         RpcReference rpcReference = AnnotationUtil.findAnnotation(field, RpcReference.class);
 
-        String version = rpcReference.version();
-
         long timeout = rpcReference.timeout();
         if (timeout <= NumberUtil.ZERO.longValue()) {
             throw new BusinessException(MessageUtil.format("timeout <= 0",
                     "className", field.getDeclaringClass().getName(), "fieldClass", fieldClass.getName()));
         }
 
+        String serviceKey = Provider.getServiceKey(fieldClass.getName(), rpcReference.version());
+
         Object serviceProxy = ProxyUtil.newProxyInstance(fieldClass, (InvocationHandler) (proxy, method, args) -> {
             String className = method.getDeclaringClass().getName();
             String methodName = method.getName();
             Class<?>[] parameterTypes = method.getParameterTypes();
             Object[] parameters = args;
+            String version = rpcReference.version();
 
             if (className.equals(Object.class.getName())) {
                 throw new BusinessException(MessageUtil.format("method not support rpc", "className", className, "methodName", methodName));
+            }
+
+            String address = rpcReference.address();
+            // TODO 注册中心获取address
+            if (StringUtil.isEmpty(address)) {
+                throw new BusinessException(MessageUtil.format("rpc address not found", "serviceKey", serviceKey));
             }
 
             return null;
@@ -73,7 +81,6 @@ public class Consumer implements BeanPostProcessor {
         field.setAccessible(Boolean.TRUE);
         field.set(bean, serviceProxy);
 
-        String serviceKey = Provider.getServiceKey(fieldClass.getName(), version);
         // TODO 服务发现
     }
 }
