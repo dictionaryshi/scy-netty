@@ -2,9 +2,11 @@ package com.scy.netty.rpc.consumer;
 
 import com.scy.core.exception.BusinessException;
 import com.scy.core.format.MessageUtil;
+import com.scy.core.format.NumberUtil;
 import com.scy.core.reflect.AnnotationUtil;
 import com.scy.core.reflect.ReflectionsUtil;
 import com.scy.netty.client.ClientConfig;
+import com.scy.netty.rpc.provider.Provider;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 
@@ -42,5 +44,17 @@ public class Consumer implements BeanPostProcessor {
             throw new BusinessException(MessageUtil.format("rpcReference not interface",
                     "className", bean.getClass().getName(), "fieldClass", fieldClass.getName()));
         }
+
+        RpcReference rpcReference = AnnotationUtil.findAnnotation(field, RpcReference.class);
+
+        String version = rpcReference.version();
+
+        long timeout = rpcReference.timeout();
+        if (timeout <= NumberUtil.ZERO.longValue()) {
+            throw new BusinessException(MessageUtil.format("timeout <= 0",
+                    "className", bean.getClass().getName(), "fieldClass", fieldClass.getName()));
+        }
+
+        String serviceKey = Provider.getServiceKey(fieldClass.getName(), version);
     }
 }
