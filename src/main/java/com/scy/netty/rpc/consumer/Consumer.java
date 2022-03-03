@@ -3,6 +3,7 @@ package com.scy.netty.rpc.consumer;
 import com.scy.core.exception.BusinessException;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.format.NumberUtil;
+import com.scy.core.proxy.ProxyUtil;
 import com.scy.core.reflect.AnnotationUtil;
 import com.scy.core.reflect.ReflectionsUtil;
 import com.scy.netty.client.ClientConfig;
@@ -11,6 +12,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
@@ -38,7 +41,7 @@ public class Consumer implements BeanPostProcessor {
         return bean;
     }
 
-    private void fillProxyInstance(Object bean, Field field) {
+    private void fillProxyInstance(Object bean, Field field) throws IllegalAccessException {
         Class<?> fieldClass = field.getType();
         if (!fieldClass.isInterface()) {
             throw new BusinessException(MessageUtil.format("rpcReference not interface",
@@ -54,6 +57,12 @@ public class Consumer implements BeanPostProcessor {
             throw new BusinessException(MessageUtil.format("timeout <= 0",
                     "className", field.getDeclaringClass().getName(), "fieldClass", fieldClass.getName()));
         }
+
+        Object serviceProxy = ProxyUtil.newProxyInstance(fieldClass, (InvocationHandler) (proxy, method, args) -> {
+        });
+
+        field.setAccessible(Boolean.TRUE);
+        field.set(bean, serviceProxy);
 
         String serviceKey = Provider.getServiceKey(fieldClass.getName(), version);
         // TODO 服务发现
