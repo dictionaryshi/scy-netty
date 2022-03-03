@@ -12,6 +12,7 @@ import com.scy.netty.client.handler.HeartBeatTimerHandler;
 import com.scy.netty.handler.CodeHandler;
 import com.scy.netty.handler.ExceptionHandler;
 import com.scy.netty.handler.NettyIdleStateHandler;
+import com.scy.netty.model.LoginRequestPacket;
 import com.scy.netty.protocol.DecodeSpliter;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -139,6 +140,7 @@ public class NettyClient extends AbstractConnectClient {
         try {
             channel = bootstrap.connect(host, port).sync().channel();
             log.info(MessageUtil.format("netty client connect success", "host", host, "port", port));
+            login();
             return;
         } catch (Exception e) {
             log.error(MessageUtil.format("netty client connect fail", e, "host", host, "port", port));
@@ -156,5 +158,13 @@ public class NettyClient extends AbstractConnectClient {
         // 重连间隔
         int delay = 1 << order;
         bootstrap.config().group().schedule(() -> connect(retry - 1), delay, TimeUnit.SECONDS);
+    }
+
+    private void login() {
+        LoginRequestPacket loginRequestPacket = new LoginRequestPacket();
+        loginRequestPacket.setClientIp(NetworkInterfaceUtil.getIp());
+        loginRequestPacket.setTimestamp(System.currentTimeMillis());
+        loginRequestPacket.setToken(null);
+        channel.writeAndFlush(loginRequestPacket).syncUninterruptibly();
     }
 }
