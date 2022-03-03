@@ -102,7 +102,7 @@ public class Consumer implements BeanPostProcessor {
             ChannelFuture channelFuture = AbstractConnectClient.asyncSend(address, clientConfig, rpcRequest);
             channelFuture.addListener((GenericFutureListener<ChannelFuture>) future -> {
                 long endTime = System.currentTimeMillis();
-                if (!future.isSuccess() || ObjectUtil.isNull(future.cause())) {
+                if (!future.isSuccess() || !ObjectUtil.isNull(future.cause())) {
                     log.error(MessageUtil.format("rpc request fail", "address", address, "rpcRequest", rpcRequest));
                     rpcResponseFuture.setThrowable(future.cause());
                     rpcResponseFuture.cancel(Boolean.TRUE);
