@@ -32,17 +32,17 @@ public class Consumer implements BeanPostProcessor {
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         ReflectionsUtil.doWithFields(
                 bean.getClass(),
-                field -> fillProxyInstance(bean, field),
+                this::fillProxyInstance,
                 field -> !Objects.isNull(AnnotationUtil.findAnnotation(field, RpcReference.class))
         );
         return bean;
     }
 
-    private void fillProxyInstance(Object bean, Field field) {
+    private void fillProxyInstance(Field field) {
         Class<?> fieldClass = field.getType();
         if (!fieldClass.isInterface()) {
             throw new BusinessException(MessageUtil.format("rpcReference not interface",
-                    "className", bean.getClass().getName(), "fieldClass", fieldClass.getName()));
+                    "className", field.getDeclaringClass().getName(), "fieldClass", fieldClass.getName()));
         }
 
         RpcReference rpcReference = AnnotationUtil.findAnnotation(field, RpcReference.class);
@@ -52,9 +52,10 @@ public class Consumer implements BeanPostProcessor {
         long timeout = rpcReference.timeout();
         if (timeout <= NumberUtil.ZERO.longValue()) {
             throw new BusinessException(MessageUtil.format("timeout <= 0",
-                    "className", bean.getClass().getName(), "fieldClass", fieldClass.getName()));
+                    "className", field.getDeclaringClass().getName(), "fieldClass", fieldClass.getName()));
         }
 
         String serviceKey = Provider.getServiceKey(fieldClass.getName(), version);
+        // TODO 服务发现
     }
 }
