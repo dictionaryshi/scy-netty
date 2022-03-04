@@ -3,6 +3,8 @@ package com.scy.netty.rpc;
 import com.scy.core.ObjectUtil;
 import com.scy.core.exception.BusinessException;
 import com.scy.core.format.MessageUtil;
+import com.scy.core.reflect.ClassUtil;
+import com.scy.core.rest.ResponseResult;
 import com.scy.netty.model.rpc.RpcRequest;
 import com.scy.netty.model.rpc.RpcResponse;
 
@@ -15,7 +17,7 @@ import java.util.concurrent.*;
  * ---------------------------------------
  * Desc    : RpcResponseFuture
  */
-public class RpcResponseFuture implements Future<Object> {
+public class RpcResponseFuture implements Future<ResponseResult<Object>> {
 
     private volatile Throwable throwable;
 
@@ -87,12 +89,13 @@ public class RpcResponseFuture implements Future<Object> {
     }
 
     @Override
-    public Object get() throws InterruptedException, ExecutionException {
+    public ResponseResult<Object> get() throws InterruptedException, ExecutionException {
         throw new BusinessException("prohibited methods");
     }
 
+    @SuppressWarnings(ClassUtil.UNCHECKED)
     @Override
-    public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public ResponseResult<Object> get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         try {
             if (!done) {
                 synchronized (lock) {
@@ -110,7 +113,7 @@ public class RpcResponseFuture implements Future<Object> {
             }
 
             if (rpcResponse.isSuccess()) {
-                return rpcResponse.getData();
+                return (ResponseResult<Object>) rpcResponse.getData();
             }
 
             throw new BusinessException(rpcResponse.getErrorMessage(), rpcResponse.getThrowable());
