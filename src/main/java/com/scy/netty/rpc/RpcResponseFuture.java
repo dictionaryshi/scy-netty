@@ -15,13 +15,13 @@ import java.util.concurrent.*;
  * ---------------------------------------
  * Desc    : RpcResponseFuture
  */
-public class RpcResponseFuture<T> implements Future<T> {
+public class RpcResponseFuture implements Future<Object> {
 
     private volatile Throwable throwable;
 
     private volatile RpcRequest rpcRequest;
 
-    private volatile RpcResponse<T> rpcResponse;
+    private volatile RpcResponse rpcResponse;
 
     private volatile boolean cancelled = Boolean.FALSE;
 
@@ -51,11 +51,11 @@ public class RpcResponseFuture<T> implements Future<T> {
         this.rpcRequest = rpcRequest;
     }
 
-    public RpcResponse<T> getRpcResponse() {
+    public RpcResponse getRpcResponse() {
         return rpcResponse;
     }
 
-    public void setRpcResponse(RpcResponse<T> rpcResponse) {
+    public void setRpcResponse(RpcResponse rpcResponse) {
         this.rpcResponse = rpcResponse;
 
         synchronized (lock) {
@@ -87,12 +87,12 @@ public class RpcResponseFuture<T> implements Future<T> {
     }
 
     @Override
-    public T get() throws InterruptedException, ExecutionException {
+    public Object get() throws InterruptedException, ExecutionException {
         throw new BusinessException("prohibited methods");
     }
 
     @Override
-    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         try {
             if (!done) {
                 synchronized (lock) {
