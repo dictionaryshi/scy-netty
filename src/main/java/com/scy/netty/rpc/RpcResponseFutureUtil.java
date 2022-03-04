@@ -15,13 +15,17 @@ public class RpcResponseFutureUtil {
     private RpcResponseFutureUtil() {
     }
 
-    private static final ConcurrentMap<String, RpcResponseFuture<?>> RPC_RESPONSE_FUTURE_POOL = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, RpcResponseFuture> RPC_RESPONSE_FUTURE_POOL = new ConcurrentHashMap<>();
 
-    public static <T> void addRpcResponseFuture(String requestId, RpcResponseFuture<T> rpcResponseFuture) {
+    public static void addRpcResponseFuture(String requestId, RpcResponseFuture rpcResponseFuture) {
         RPC_RESPONSE_FUTURE_POOL.put(requestId, rpcResponseFuture);
     }
 
     public static void removeRpcResponseFuture(String requestId) {
         RPC_RESPONSE_FUTURE_POOL.remove(requestId);
+    }
+
+    public static RpcResponseFuture getRpcResponseFuture(String requestId) {
+        return RPC_RESPONSE_FUTURE_POOL.get(requestId);
     }
 }

@@ -13,7 +13,9 @@ import com.scy.core.trace.TraceUtil;
 import com.scy.netty.client.AbstractConnectClient;
 import com.scy.netty.client.ClientConfig;
 import com.scy.netty.model.rpc.RpcRequest;
+import com.scy.netty.model.rpc.RpcResponse;
 import com.scy.netty.rpc.RpcResponseFuture;
+import com.scy.netty.rpc.RpcResponseFutureUtil;
 import com.scy.netty.rpc.provider.Provider;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.GenericFutureListener;
@@ -24,6 +26,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author : shichunyang
@@ -97,7 +100,7 @@ public class Consumer implements BeanPostProcessor {
 
             long startTime = System.currentTimeMillis();
 
-            RpcResponseFuture<?> rpcResponseFuture = new RpcResponseFuture<>(rpcRequest);
+            RpcResponseFuture rpcResponseFuture = new RpcResponseFuture(rpcRequest);
 
             ChannelFuture channelFuture = AbstractConnectClient.asyncSend(address, clientConfig, rpcRequest);
             channelFuture.addListener((GenericFutureListener<ChannelFuture>) future -> {
@@ -109,12 +112,25 @@ public class Consumer implements BeanPostProcessor {
                 }
             });
 
-            return rpcResponseFuture;
+            return rpcResponseFuture.get(timeout, TimeUnit.MILLISECONDS);
         });
 
         field.setAccessible(Boolean.TRUE);
         field.set(bean, serviceProxy);
 
         // TODO 服务发现
+    }
+
+    public static void notifyRpcResponseFuture(RpcResponse rpcResponse) {
+        try {
+            RpcResponseFuture rpcResponseFuture = RpcResponseFutureUtil.getRpcResponseFuture(rpcResponse.getRequestId());
+            if (ObjectUtil.isNull(rpcResponseFuture)) {
+                return;
+            }
+
+            rpcResponseFuture.setRpcResponse(rpcResponse);
+        } finally {
+            RpcResponseFutureUtil.removeRpcResponseFuture(rpcResponse.getRequestId());
+        }
     }
 }

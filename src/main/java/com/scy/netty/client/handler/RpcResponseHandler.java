@@ -1,6 +1,7 @@
 package com.scy.netty.client.handler;
 
 import com.scy.netty.model.rpc.RpcResponse;
+import com.scy.netty.rpc.consumer.Consumer;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -13,7 +14,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
  * Desc    : RpcResponseHandler
  */
 @ChannelHandler.Sharable
-public class RpcResponseHandler extends SimpleChannelInboundHandler<RpcResponse<?>> {
+public class RpcResponseHandler extends SimpleChannelInboundHandler<RpcResponse> {
 
     public static final RpcResponseHandler INSTANCE = new RpcResponseHandler();
 
@@ -21,6 +22,7 @@ public class RpcResponseHandler extends SimpleChannelInboundHandler<RpcResponse<
     }
 
     @Override
-    public void channelRead0(ChannelHandlerContext ctx, RpcResponse<?> rpcResponse) throws Exception {
+    public void channelRead0(ChannelHandlerContext ctx, RpcResponse rpcResponse) throws Exception {
+        Consumer.notifyRpcResponseFuture(rpcResponse);
     }
 }

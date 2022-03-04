@@ -18,7 +18,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-public class RpcResponse<T> extends AbstractPacket implements Serializable {
+public class RpcResponse extends AbstractPacket implements Serializable {
 
     private boolean success;
 
@@ -28,7 +28,7 @@ public class RpcResponse<T> extends AbstractPacket implements Serializable {
 
     private Throwable throwable;
 
-    private T data;
+    private Object data;
 
     @Override
     public int getCommand() {

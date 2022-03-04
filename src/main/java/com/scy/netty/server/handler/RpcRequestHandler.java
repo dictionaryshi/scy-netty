@@ -2,7 +2,6 @@ package com.scy.netty.server.handler;
 
 import com.scy.core.ObjectUtil;
 import com.scy.core.exception.BusinessException;
-import com.scy.core.exception.ExceptionUtil;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.reflect.MethodUtil;
 import com.scy.core.thread.ThreadPoolUtil;
@@ -47,11 +46,15 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcRequest> {
             }
 
             threadPoolExecutor.execute(() -> {
-                RpcResponse<Object> rpcResponse = invoke(rpcRequest);
-                ctx.writeAndFlush(rpcResponse);
+                RpcResponse rpcResponse = invoke(rpcRequest);
+                try {
+                    ctx.writeAndFlush(rpcResponse).sync();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             });
         } catch (Exception e) {
-            RpcResponse<?> rpcResponse = new RpcResponse<>();
+            RpcResponse rpcResponse = new RpcResponse();
             rpcResponse.setSuccess(Boolean.FALSE);
             rpcResponse.setRequestId(rpcRequest.getRequestId());
             rpcResponse.setThrowable(e);
@@ -63,8 +66,8 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcRequest> {
         }
     }
 
-    private RpcResponse<Object> invoke(RpcRequest rpcRequest) {
-        RpcResponse<Object> rpcResponse = new RpcResponse<>();
+    private RpcResponse invoke(RpcRequest rpcRequest) {
+        RpcResponse rpcResponse = new RpcResponse();
         rpcResponse.setRequestId(rpcRequest.getRequestId());
 
         String serviceKey = Provider.getServiceKey(rpcRequest.getClassName(), rpcRequest.getVersion());
