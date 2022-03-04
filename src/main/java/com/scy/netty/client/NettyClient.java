@@ -108,7 +108,6 @@ public class NettyClient extends AbstractConnectClient {
         closed = Boolean.TRUE;
         if (!ObjectUtil.isNull(this.channel)) {
             this.channel.close();
-            this.channel = null;
         }
     }
 
