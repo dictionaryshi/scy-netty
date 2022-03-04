@@ -114,7 +114,7 @@ public class Consumer implements BeanPostProcessor {
             });
 
             ResponseResult<Object> responseResult = new ResponseResult<>();
-            responseResult.setFuture(rpcResponseFuture);
+            responseResult.setResponseResultFuture(rpcResponseFuture);
             return responseResult;
         });
 
