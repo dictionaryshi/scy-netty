@@ -9,6 +9,7 @@ import com.scy.core.format.NumberUtil;
 import com.scy.core.proxy.ProxyUtil;
 import com.scy.core.reflect.AnnotationUtil;
 import com.scy.core.reflect.ReflectionsUtil;
+import com.scy.core.rest.ResponseResult;
 import com.scy.core.trace.TraceUtil;
 import com.scy.netty.client.AbstractConnectClient;
 import com.scy.netty.client.ClientConfig;
@@ -112,7 +113,9 @@ public class Consumer implements BeanPostProcessor {
                 }
             });
 
-            return rpcResponseFuture.get(timeout, TimeUnit.MILLISECONDS);
+            ResponseResult<Object> responseResult = new ResponseResult<>();
+            responseResult.setFuture(rpcResponseFuture);
+            return responseResult;
         });
 
         field.setAccessible(Boolean.TRUE);
