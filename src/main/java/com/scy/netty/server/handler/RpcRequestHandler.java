@@ -54,7 +54,8 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcRequest> {
             RpcResponse<?> rpcResponse = new RpcResponse<>();
             rpcResponse.setSuccess(Boolean.FALSE);
             rpcResponse.setRequestId(rpcRequest.getRequestId());
-            rpcResponse.setMessage(ExceptionUtil.getExceptionMessageWithTraceId(e));
+            rpcResponse.setThrowable(e);
+            rpcResponse.setErrorMessage(null);
             rpcResponse.setData(null);
             ctx.writeAndFlush(rpcResponse);
         } finally {
@@ -70,14 +71,14 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcRequest> {
         Object serviceBean = Provider.getServiceMap().get(serviceKey);
         if (ObjectUtil.isNull(serviceBean)) {
             rpcResponse.setSuccess(Boolean.FALSE);
-            rpcResponse.setMessage(MessageUtil.format("serviceKey not found", "serviceKey", serviceKey));
+            rpcResponse.setErrorMessage(MessageUtil.format("serviceKey not found", "serviceKey", serviceKey));
             rpcResponse.setData(null);
             return rpcResponse;
         }
 
         if (System.currentTimeMillis() - rpcRequest.getCreateTime() > TIME_OUT) {
             rpcResponse.setSuccess(Boolean.FALSE);
-            rpcResponse.setMessage(MessageUtil.format("request timeout"));
+            rpcResponse.setErrorMessage(MessageUtil.format("request timeout"));
             rpcResponse.setData(null);
             return rpcResponse;
         }
@@ -91,7 +92,7 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcRequest> {
             Method method = MethodUtil.getMethod(serviceClass, methodName, parameterTypes);
             if (ObjectUtil.isNull(method)) {
                 rpcResponse.setSuccess(Boolean.FALSE);
-                rpcResponse.setMessage(MessageUtil.format("request method not found", "methodName", methodName));
+                rpcResponse.setErrorMessage(MessageUtil.format("request method not found", "methodName", methodName));
                 rpcResponse.setData(null);
                 return rpcResponse;
             }
@@ -99,12 +100,13 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcRequest> {
             Object result = method.invoke(serviceBean, parameters);
 
             rpcResponse.setSuccess(Boolean.TRUE);
-            rpcResponse.setMessage(null);
+            rpcResponse.setErrorMessage(null);
             rpcResponse.setData(result);
             return rpcResponse;
         } catch (Throwable throwable) {
             rpcResponse.setSuccess(Boolean.FALSE);
-            rpcResponse.setMessage(ExceptionUtil.getExceptionMessageWithTraceId(throwable));
+            rpcResponse.setThrowable(throwable);
+            rpcResponse.setErrorMessage(null);
             rpcResponse.setData(null);
             return rpcResponse;
         }

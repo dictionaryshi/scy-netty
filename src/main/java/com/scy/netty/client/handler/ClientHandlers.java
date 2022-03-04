@@ -23,6 +23,7 @@ public class ClientHandlers extends SimpleChannelInboundHandler<AbstractPacket> 
         handlerMap.put(NettyConstant.LOGIN_RESPONSE, LoginResponseHandler.INSTANCE);
         handlerMap.put(NettyConstant.LOGOUT_RESPONSE, LogoutResponseHandler.INSTANCE);
         handlerMap.put(NettyConstant.MESSAGE_RESPONSE, MessageResponseHandler.INSTANCE);
+        handlerMap.put(NettyConstant.RPC_RESPONSE, RpcResponseHandler.INSTANCE);
     }
 
     @Override

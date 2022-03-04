@@ -113,7 +113,7 @@ public class RpcResponseFuture<T> implements Future<T> {
                 return rpcResponse.getData();
             }
 
-            throw new BusinessException(rpcResponse.getMessage());
+            throw new BusinessException(rpcResponse.getErrorMessage(), rpcResponse.getThrowable());
         } finally {
             RpcResponseFutureUtil.removeRpcResponseFuture(rpcRequest.getRequestId());
         }

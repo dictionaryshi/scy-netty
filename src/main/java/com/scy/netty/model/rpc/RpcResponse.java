@@ -24,7 +24,9 @@ public class RpcResponse<T> extends AbstractPacket implements Serializable {
 
     private String requestId;
 
-    private String message;
+    private String errorMessage;
+
+    private Throwable throwable;
 
     private T data;
 
