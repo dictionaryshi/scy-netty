@@ -4,6 +4,7 @@ import com.scy.netty.client.ClientConfig;
 import com.scy.netty.client.NettyClient;
 import com.scy.netty.rpc.consumer.Consumer;
 import com.scy.netty.rpc.provider.Provider;
+import com.scy.zookeeper.config.RegisterCenter;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -21,8 +22,8 @@ public class RpcConfig {
     }
 
     @Bean
-    public ServerStart serverStart() {
-        return new ServerStart();
+    public ServerStart serverStart(RegisterCenter registerCenter) {
+        return new ServerStart(registerCenter);
     }
 
     @Bean
