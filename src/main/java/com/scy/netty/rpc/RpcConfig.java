@@ -34,7 +34,7 @@ public class RpcConfig {
     }
 
     @Bean
-    public Consumer consumer(ClientConfig clientConfig) {
-        return new Consumer(clientConfig);
+    public Consumer consumer(ClientConfig clientConfig, RegisterCenter registerCenter) {
+        return new Consumer(clientConfig, registerCenter);
     }
 }
