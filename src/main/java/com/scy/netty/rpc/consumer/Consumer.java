@@ -1,5 +1,6 @@
 package com.scy.netty.rpc.consumer;
 
+import com.scy.core.CollectionUtil;
 import com.scy.core.ObjectUtil;
 import com.scy.core.StringUtil;
 import com.scy.core.UUIDUtil;
@@ -18,6 +19,7 @@ import com.scy.netty.model.rpc.RpcResponse;
 import com.scy.netty.rpc.RpcResponseFuture;
 import com.scy.netty.rpc.RpcResponseFutureUtil;
 import com.scy.netty.rpc.provider.Provider;
+import com.scy.zookeeper.config.RegisterCenter;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +29,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
+import java.util.TreeSet;
 
 /**
  * @author : shichunyang
@@ -41,8 +43,11 @@ public class Consumer implements BeanPostProcessor {
 
     private final ClientConfig clientConfig;
 
-    public Consumer(ClientConfig clientConfig) {
+    private final RegisterCenter registerCenter;
+
+    public Consumer(ClientConfig clientConfig, RegisterCenter registerCenter) {
         this.clientConfig = clientConfig;
+        this.registerCenter = registerCenter;
     }
 
     @Override
@@ -84,7 +89,14 @@ public class Consumer implements BeanPostProcessor {
             }
 
             String address = rpcReference.address();
-            // TODO 注册中心获取address
+
+            if (StringUtil.isEmpty(address)) {
+                TreeSet<String> addresses = registerCenter.discovery(serviceKey);
+                if (!CollectionUtil.isEmpty(addresses)) {
+                    address = addresses.first();
+                }
+            }
+
             if (StringUtil.isEmpty(address)) {
                 throw new BusinessException(MessageUtil.format("rpc address not found", "serviceKey", serviceKey));
             }
@@ -104,10 +116,11 @@ public class Consumer implements BeanPostProcessor {
             RpcResponseFuture rpcResponseFuture = new RpcResponseFuture(rpcRequest);
 
             ChannelFuture channelFuture = AbstractConnectClient.asyncSend(address, clientConfig, rpcRequest);
+            String finalAddress = address;
             channelFuture.addListener((GenericFutureListener<ChannelFuture>) future -> {
                 long endTime = System.currentTimeMillis();
                 if (!future.isSuccess() || !ObjectUtil.isNull(future.cause())) {
-                    log.error(MessageUtil.format("rpc request fail", "address", address, "rpcRequest", rpcRequest));
+                    log.error(MessageUtil.format("rpc request fail", "address", finalAddress, "rpcRequest", rpcRequest));
                     rpcResponseFuture.setThrowable(future.cause());
                     rpcResponseFuture.cancel(Boolean.TRUE);
                 }
@@ -121,7 +134,7 @@ public class Consumer implements BeanPostProcessor {
         field.setAccessible(Boolean.TRUE);
         field.set(bean, serviceProxy);
 
-        // TODO 服务发现
+        registerCenter.discovery(serviceKey);
     }
 
     public static void notifyRpcResponseFuture(RpcResponse rpcResponse) {
