@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
+import io.netty.util.internal.PlatformDependent;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nullable;
@@ -56,5 +57,13 @@ public class NettyUtil {
     @Nullable
     public static <T> T getAttr(Channel channel, AttributeKey<T> attributeKey) {
         return channel.attr(attributeKey).get();
+    }
+
+    public static long usedDirectMemory() {
+        return PlatformDependent.usedDirectMemory();
+    }
+
+    public static long maxDirectMemory() {
+        return PlatformDependent.maxDirectMemory();
     }
 }
