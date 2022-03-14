@@ -53,6 +53,10 @@ public class NettyClient extends AbstractConnectClient {
 
     public static final int MAX_RETRY = 2;
 
+    private volatile int writeBufferLowWaterMark = WriteBufferWaterMark.DEFAULT.low();
+
+    private volatile int writeBufferHighWaterMark = WriteBufferWaterMark.DEFAULT.high();
+
     @Override
     public void init(String address, ClientConfig clientConfig) {
         if (closed) {
@@ -113,7 +117,7 @@ public class NettyClient extends AbstractConnectClient {
 
     @Override
     public boolean isValidate() {
-        return !ObjectUtil.isNull(this.channel) && this.channel.isActive();
+        return !ObjectUtil.isNull(this.channel) && this.channel.isActive() && channel.isWritable();
     }
 
     @Override
@@ -138,6 +142,8 @@ public class NettyClient extends AbstractConnectClient {
 
         try {
             channel = bootstrap.connect(host, port).sync().channel();
+            channel.config().setWriteBufferLowWaterMark(writeBufferLowWaterMark);
+            channel.config().setWriteBufferHighWaterMark(writeBufferHighWaterMark);
             log.info(MessageUtil.format("netty client connect success", "host", host, "port", port));
             login();
             return;
