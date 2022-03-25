@@ -87,19 +87,19 @@ public class NettyClient extends AbstractConnectClient {
                 .group(workerGroup)
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                .option(ChannelOption.SO_KEEPALIVE, true)
-                .option(ChannelOption.TCP_NODELAY, true)
+                .option(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
+                .option(ChannelOption.TCP_NODELAY, Boolean.TRUE)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel socketChannel) {
                         // 空闲检测
-                        socketChannel.pipeline().addLast(new NettyIdleStateHandler());
-                        socketChannel.pipeline().addLast(new DecodeSpliter());
-                        socketChannel.pipeline().addLast(CodeHandler.INSTANCE);
-                        socketChannel.pipeline().addLast(ClientHandlers.INSTANCE);
+                        socketChannel.pipeline().addLast("NettyIdleStateHandler", new NettyIdleStateHandler());
+                        socketChannel.pipeline().addLast("DecodeSpliter", new DecodeSpliter());
+                        socketChannel.pipeline().addLast("CodeHandler", CodeHandler.INSTANCE);
+                        socketChannel.pipeline().addLast("ClientHandlers", ClientHandlers.INSTANCE);
                         // 心跳定时器
-                        socketChannel.pipeline().addLast(new HeartBeatTimerHandler(nettyClient));
-                        socketChannel.pipeline().addLast(ExceptionHandler.INSTANCE);
+                        socketChannel.pipeline().addLast("HeartBeatTimerHandler", new HeartBeatTimerHandler(nettyClient));
+                        socketChannel.pipeline().addLast("ExceptionHandler", ExceptionHandler.INSTANCE);
                     }
                 });
 
