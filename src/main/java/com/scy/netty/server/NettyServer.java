@@ -60,22 +60,22 @@ public class NettyServer extends AbstractServer {
         serverBootstrap
                 .group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
+                .option(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
                 .option(ChannelOption.SO_BACKLOG, 511)
-                .childOption(ChannelOption.SO_KEEPALIVE, true)
-                .childOption(ChannelOption.TCP_NODELAY, true)
-                .childOption(ChannelOption.SO_REUSEADDR, true)
+                .childOption(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
+                .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     public void initChannel(NioSocketChannel nioSocketChannel) {
                         // 空闲检测
-                        nioSocketChannel.pipeline().addLast(new NettyIdleStateHandler());
-                        nioSocketChannel.pipeline().addLast(new DecodeSpliter());
-                        nioSocketChannel.pipeline().addLast(CodeHandler.INSTANCE);
-                        nioSocketChannel.pipeline().addLast(HeartBeatRequestHandler.INSTANCE);
-                        nioSocketChannel.pipeline().addLast(LoginRequestHandler.INSTANCE);
-                        nioSocketChannel.pipeline().addLast(PermissionAuditHandler.INSTANCE);
-                        nioSocketChannel.pipeline().addLast(ServerHandlers.INSTANCE);
-                        nioSocketChannel.pipeline().addLast(ExceptionHandler.INSTANCE);
+                        nioSocketChannel.pipeline().addLast("NettyIdleStateHandler", new NettyIdleStateHandler());
+                        nioSocketChannel.pipeline().addLast("DecodeSpliter", new DecodeSpliter());
+                        nioSocketChannel.pipeline().addLast("CodeHandler", CodeHandler.INSTANCE);
+                        nioSocketChannel.pipeline().addLast("HeartBeatRequestHandler", HeartBeatRequestHandler.INSTANCE);
+                        nioSocketChannel.pipeline().addLast("LoginRequestHandler", LoginRequestHandler.INSTANCE);
+                        nioSocketChannel.pipeline().addLast("PermissionAuditHandler", PermissionAuditHandler.INSTANCE);
+                        nioSocketChannel.pipeline().addLast("ServerHandlers", ServerHandlers.INSTANCE);
+                        nioSocketChannel.pipeline().addLast("ExceptionHandler", ExceptionHandler.INSTANCE);
                     }
                 });
 
