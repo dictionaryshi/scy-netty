@@ -53,7 +53,7 @@ public class HashedWheelScheduler {
         hashedWheelTimer.stop();
     }
 
-    private void replaceScheduledFuture(final SchedulerKey key, final Timeout newTimeout) {
+    private void replaceScheduledFuture(SchedulerKey key, Timeout newTimeout) {
         final Timeout oldTimeout;
 
         if (newTimeout.isExpired()) {
