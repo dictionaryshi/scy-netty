@@ -2,7 +2,6 @@ package com.scy.netty.scheduler;
 
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timeout;
-import io.netty.util.TimerTask;
 
 import java.util.concurrent.*;
 
