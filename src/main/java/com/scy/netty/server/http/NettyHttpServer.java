@@ -12,6 +12,9 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,6 +66,9 @@ public class NettyHttpServer extends AbstractServer {
                     public void initChannel(NioSocketChannel nioSocketChannel) {
                         // 空闲检测
                         nioSocketChannel.pipeline().addLast("NettyIdleStateHandler", new NettyIdleStateHandler());
+                        nioSocketChannel.pipeline().addLast("HttpServerCodec", new HttpServerCodec());
+                        nioSocketChannel.pipeline().addLast("HttpObjectAggregator", new HttpObjectAggregator(5 * 1024 * 1024));
+                        nioSocketChannel.pipeline().addLast("HttpContentCompressor", new HttpContentCompressor());
                         nioSocketChannel.pipeline().addLast("ExceptionHandler", ExceptionHandler.INSTANCE);
                     }
                 });
