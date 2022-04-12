@@ -1,5 +1,6 @@
 package com.scy.netty.server.http;
 
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
@@ -27,5 +28,17 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
         String requestData = fullHttpRequest.content().toString(CharsetUtil.UTF_8);
 
         boolean keepAlive = HttpUtil.isKeepAlive(fullHttpRequest);
+    }
+
+    private void writeResponse(ChannelHandlerContext channelHandlerContext, boolean keepAlive, String data) {
+        FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.copiedBuffer(data, CharsetUtil.UTF_8));
+
+        fullHttpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON.toString());
+
+        if (keepAlive) {
+            fullHttpResponse.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+        }
+
+        channelHandlerContext.writeAndFlush(fullHttpResponse);
     }
 }
