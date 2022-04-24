@@ -1,6 +1,10 @@
 package com.scy.netty.job;
 
 import com.scy.core.CollectionUtil;
+import com.scy.core.ObjectUtil;
+import com.scy.core.StringUtil;
+import com.scy.core.exception.BusinessException;
+import com.scy.core.format.MessageUtil;
 import com.scy.core.spring.ApplicationContextUtil;
 import com.scy.netty.job.annotation.Job;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -9,6 +13,8 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
 
 /**
@@ -19,6 +25,8 @@ import java.util.stream.Stream;
  * Desc    : JobConfig
  */
 public class JobConfig implements SmartInitializingSingleton {
+
+    public static final ConcurrentMap<String, JobHandler> JOB_HANDLER_MAP = new ConcurrentHashMap<>();
 
     @Override
     public void afterSingletonsInstantiated() {
@@ -37,5 +45,37 @@ public class JobConfig implements SmartInitializingSingleton {
     }
 
     private void register(Object bean, Method method, Job job) {
+        String handlerName = job.value();
+        if (!ObjectUtil.isNull(JOB_HANDLER_MAP.get(handlerName))) {
+            throw new BusinessException(MessageUtil.format("handlerName 重复", "handlerName", handlerName));
+        }
+
+        method.setAccessible(Boolean.TRUE);
+
+        Class<?> clazz = bean.getClass();
+
+        Method initMethod = null;
+
+        if (!StringUtil.isEmpty(job.init())) {
+            try {
+                initMethod = clazz.getDeclaredMethod(job.init());
+                initMethod.setAccessible(Boolean.TRUE);
+            } catch (NoSuchMethodException e) {
+                throw new BusinessException(MessageUtil.format("handler init method 不存在", "handlerName", handlerName));
+            }
+        }
+
+        Method destroyMethod = null;
+
+        if (!StringUtil.isEmpty(job.destroy())) {
+            try {
+                destroyMethod = clazz.getDeclaredMethod(job.destroy());
+                destroyMethod.setAccessible(Boolean.TRUE);
+            } catch (NoSuchMethodException e) {
+                throw new BusinessException(MessageUtil.format("handler destroy method 不存在", "handlerName", handlerName));
+            }
+        }
+
+        JOB_HANDLER_MAP.put(handlerName, new MethodJobHandler(bean, initMethod, method, destroyMethod));
     }
 }
