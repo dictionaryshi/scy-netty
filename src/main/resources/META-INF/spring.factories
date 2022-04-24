@@ -1,3 +1,4 @@
 #自动配置类
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 com.scy.netty.rpc.RpcConfig\
+,com.scy.netty.job.JobConfig\
