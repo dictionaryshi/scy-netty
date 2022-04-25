@@ -1,6 +1,7 @@
 package com.scy.netty.server.http;
 
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
@@ -15,7 +16,13 @@ import lombok.extern.slf4j.Slf4j;
  * Desc    : HttpServerHandler
  */
 @Slf4j
+@ChannelHandler.Sharable
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+
+    public static final HttpServerHandler INSTANCE = new HttpServerHandler();
+
+    private HttpServerHandler() {
+    }
 
     @Override
     public void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest) throws Exception {
