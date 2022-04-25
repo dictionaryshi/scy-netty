@@ -69,7 +69,7 @@ public class NettyHttpServer extends AbstractServer {
                         nioSocketChannel.pipeline().addLast("HttpServerCodec", new HttpServerCodec());
                         nioSocketChannel.pipeline().addLast("HttpObjectAggregator", new HttpObjectAggregator(5 * 1024 * 1024));
                         nioSocketChannel.pipeline().addLast("HttpContentCompressor", new HttpContentCompressor());
-                        nioSocketChannel.pipeline().addLast("HttpServerHandler", new HttpServerHandler());
+                        nioSocketChannel.pipeline().addLast("HttpServerHandler", HttpServerHandler.INSTANCE);
                         nioSocketChannel.pipeline().addLast("ExceptionHandler", ExceptionHandler.INSTANCE);
                     }
                 });
