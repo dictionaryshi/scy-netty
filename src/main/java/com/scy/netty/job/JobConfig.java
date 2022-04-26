@@ -11,9 +11,11 @@ import com.scy.core.spring.ApplicationContextUtil;
 import com.scy.netty.job.annotation.Job;
 import com.scy.netty.server.ServerConfig;
 import com.scy.netty.server.http.NettyHttpServer;
+import lombok.Getter;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +29,7 @@ import java.util.stream.Stream;
  * ---------------------------------------
  * Desc    : JobConfig
  */
+@Getter
 public class JobConfig implements SmartInitializingSingleton {
 
     private NettyHttpServer nettyHttpServer;
