@@ -4,13 +4,16 @@ import com.scy.core.CollectionUtil;
 import com.scy.core.ObjectUtil;
 import com.scy.core.StringUtil;
 import com.scy.core.exception.BusinessException;
+import com.scy.core.format.MessageFormatUtil;
 import com.scy.core.format.MessageUtil;
+import com.scy.core.net.NetworkInterfaceUtil;
 import com.scy.core.spring.ApplicationContextUtil;
 import com.scy.netty.job.annotation.Job;
+import com.scy.netty.server.ServerConfig;
+import com.scy.netty.server.http.NettyHttpServer;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +28,16 @@ import java.util.stream.Stream;
  * Desc    : JobConfig
  */
 public class JobConfig implements SmartInitializingSingleton {
+
+    private NettyHttpServer nettyHttpServer;
+
+    private int port = 9097;
+
+    private String ip;
+
+    private String address;
+
+    public static final String ADDRESS_TEMPLATE = "http://{0}";
 
     public static final ConcurrentMap<String, JobHandler> JOB_HANDLER_MAP = new ConcurrentHashMap<>();
 
@@ -42,6 +55,26 @@ public class JobConfig implements SmartInitializingSingleton {
 
             jobMethodMap.forEach((method, job) -> register(bean, method, job));
         });
+
+        nettyHttpServer = new NettyHttpServer();
+
+        ip = NetworkInterfaceUtil.getIp();
+        if (StringUtil.isEmpty(ip)) {
+            throw new BusinessException("NettyHttpServer error 获取ip失败");
+        }
+
+        address = MessageFormatUtil.format(ADDRESS_TEMPLATE, NetworkInterfaceUtil.getIpPort(ip, port));
+
+        nettyHttpServer.setStartedCallback(() -> {
+        });
+
+        nettyHttpServer.setBeforeStopCallback(() -> {
+        });
+
+        ServerConfig serverConfig = new ServerConfig();
+        serverConfig.setPort(port);
+
+        nettyHttpServer.start(serverConfig);
     }
 
     private void register(Object bean, Method method, Job job) {
