@@ -56,6 +56,9 @@ public class Job implements Runnable {
     @Override
     public void run() {
         Thread.currentThread().setName("JobThread-" + jobId + "-" + System.currentTimeMillis());
+
+        while (runSwitch()) {
+        }
     }
 
     public ResponseResult<Boolean> pushTriggerQueue(JobParam triggerParam) {
@@ -71,5 +74,30 @@ public class Job implements Runnable {
         triggerQueue.add(triggerParam);
 
         return ResponseResult.success(Boolean.TRUE);
+    }
+
+    public boolean runSwitch() {
+        if (toStop) {
+            log.info(MessageUtil.format("job killed", "jobId", jobId));
+            Thread.currentThread().interrupt();
+            return Boolean.FALSE;
+        }
+
+        if (Thread.currentThread().isInterrupted()) {
+            log.info(MessageUtil.format("job interrupted", "jobId", jobId));
+            return Boolean.FALSE;
+        }
+
+        return Boolean.TRUE;
+    }
+
+    public void toStop(String stopReason) {
+        this.toStop = Boolean.TRUE;
+
+        this.stopReason = stopReason;
+    }
+
+    public boolean isRunningOrHasQueue() {
+        return running || triggerQueue.size() > 0;
     }
 }
