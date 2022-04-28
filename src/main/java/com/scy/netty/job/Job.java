@@ -100,9 +100,9 @@ public class Job implements Runnable {
         try {
         } catch (Throwable throwable) {
             if (toStop) {
-                log.info(MessageUtil.format("job killed", throwable, "stopReason", stopReason));
+                log.error(MessageUtil.format("job killed", throwable, "stopReason", stopReason));
             } else {
-                log.info(MessageUtil.format("job exception", throwable));
+                log.error(MessageUtil.format("job exception", throwable));
             }
         } finally {
             if (Objects.nonNull(triggerParam)) {
