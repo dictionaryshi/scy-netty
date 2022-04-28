@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author : shichunyang
@@ -98,6 +99,11 @@ public class Job implements Runnable {
         JobParam triggerParam = null;
 
         try {
+            triggerParam = triggerQueue.poll(3L, TimeUnit.SECONDS);
+            if (Objects.isNull(triggerParam) && idleTimes > 60 && triggerQueue.isEmpty()) {
+                // TODO 销毁任务
+                return;
+            }
         } catch (Throwable throwable) {
             if (toStop) {
                 log.error(MessageUtil.format("job killed", throwable, "stopReason", stopReason));
