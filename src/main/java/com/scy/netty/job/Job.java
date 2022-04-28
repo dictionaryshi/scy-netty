@@ -67,6 +67,7 @@ public class Job implements Runnable {
         }
 
         while (runSwitch()) {
+            runJob();
         }
 
         while (triggerQueue.size() > 0) {
@@ -87,6 +88,32 @@ public class Job implements Runnable {
         log.info(MessageUtil.format("job stopped", "thread", Thread.currentThread().getName()));
 
         Thread.currentThread().setName(tmpThreadName);
+    }
+
+    private void runJob() {
+        running = Boolean.FALSE;
+
+        idleTimes++;
+
+        JobParam triggerParam = null;
+
+        try {
+        } catch (Throwable throwable) {
+            if (toStop) {
+                log.info(MessageUtil.format("job killed", throwable, "stopReason", stopReason));
+            } else {
+                log.info(MessageUtil.format("job exception", throwable));
+            }
+        } finally {
+            if (Objects.nonNull(triggerParam)) {
+                // TODO 回调通知
+                long logId = triggerParam.getLogId();
+                long logDateTime = triggerParam.getLogDateTime();
+                if (!toStop) {
+                } else {
+                }
+            }
+        }
     }
 
     public ResponseResult<Boolean> pushTriggerQueue(JobParam triggerParam) {
