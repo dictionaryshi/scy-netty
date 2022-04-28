@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -57,8 +58,31 @@ public class Job implements Runnable {
     public void run() {
         Thread.currentThread().setName("JobThread-" + jobId + "-" + System.currentTimeMillis());
 
+        try {
+            handler.init();
+        } catch (Exception e) {
+            log.error(MessageUtil.format("handler init error", e));
+        }
+
         while (runSwitch()) {
         }
+
+        while (triggerQueue.size() > 0) {
+            JobParam triggerParam = triggerQueue.poll();
+            if (Objects.nonNull(triggerParam)) {
+                // TODO 回调通知
+                long logId = triggerParam.getLogId();
+                long logDateTime = triggerParam.getLogDateTime();
+            }
+        }
+
+        try {
+            handler.destroy();
+        } catch (Throwable e) {
+            log.error(MessageUtil.format("handler destroy error", e));
+        }
+
+        log.info(MessageUtil.format("job stopped", "thread", Thread.currentThread().getName()));
     }
 
     public ResponseResult<Boolean> pushTriggerQueue(JobParam triggerParam) {
