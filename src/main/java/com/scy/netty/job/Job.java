@@ -93,9 +93,7 @@ public class Job implements Runnable {
 
     private void runJob() {
         running = Boolean.FALSE;
-
         idleTimes++;
-
         JobParam triggerParam = null;
 
         try {
