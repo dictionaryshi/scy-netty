@@ -100,10 +100,16 @@ public class Job implements Runnable {
 
         try {
             triggerParam = triggerQueue.poll(3L, TimeUnit.SECONDS);
-            if (Objects.isNull(triggerParam) && idleTimes > 60 && triggerQueue.isEmpty()) {
-                // TODO 销毁任务
+            if (Objects.isNull(triggerParam)) {
+                if (idleTimes > 60 && triggerQueue.isEmpty()) {
+                    // TODO 销毁任务
+                }
                 return;
             }
+
+            running = Boolean.TRUE;
+            idleTimes = NumberUtil.ZERO.intValue();
+            triggerLogIdSet.remove(triggerParam.getLogId());
         } catch (Throwable throwable) {
             if (toStop) {
                 log.error(MessageUtil.format("job killed", throwable, "stopReason", stopReason));
