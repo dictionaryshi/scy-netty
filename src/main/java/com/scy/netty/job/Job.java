@@ -56,6 +56,8 @@ public class Job implements Runnable {
 
     @Override
     public void run() {
+        String tmpThreadName = Thread.currentThread().getName();
+
         Thread.currentThread().setName("JobThread-" + jobId + "-" + System.currentTimeMillis());
 
         try {
@@ -83,6 +85,8 @@ public class Job implements Runnable {
         }
 
         log.info(MessageUtil.format("job stopped", "thread", Thread.currentThread().getName()));
+
+        Thread.currentThread().setName(tmpThreadName);
     }
 
     public ResponseResult<Boolean> pushTriggerQueue(JobParam triggerParam) {
