@@ -1,6 +1,9 @@
 package com.scy.netty.job;
 
+import com.scy.core.enums.ResponseCodeEnum;
+import com.scy.core.format.MessageUtil;
 import com.scy.core.format.NumberUtil;
+import com.scy.core.rest.ResponseResult;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -53,5 +56,20 @@ public class Job implements Runnable {
     @Override
     public void run() {
         Thread.currentThread().setName("JobThread-" + jobId + "-" + System.currentTimeMillis());
+    }
+
+    public ResponseResult<Boolean> pushTriggerQueue(JobParam triggerParam) {
+        // avoid repeat
+        if (triggerLogIdSet.contains(triggerParam.getLogId())) {
+            log.info(MessageUtil.format("repeate trigger job", "logId", triggerParam.getLogId()));
+            return ResponseResult.error(ResponseCodeEnum.BUSINESS_EXCEPTION.getCode(),
+                    MessageUtil.format("repeate trigger job", "logId", triggerParam.getLogId()), Boolean.FALSE);
+        }
+
+        triggerLogIdSet.add(triggerParam.getLogId());
+
+        triggerQueue.add(triggerParam);
+
+        return ResponseResult.success(Boolean.TRUE);
     }
 }
