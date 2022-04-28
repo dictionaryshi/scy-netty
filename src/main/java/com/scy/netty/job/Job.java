@@ -1,6 +1,9 @@
 package com.scy.netty.job;
 
+import com.scy.core.enums.ResponseCodeEnum;
+import com.scy.core.format.MessageUtil;
 import com.scy.core.format.NumberUtil;
+import com.scy.core.rest.ResponseResult;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -53,5 +56,48 @@ public class Job implements Runnable {
     @Override
     public void run() {
         Thread.currentThread().setName("JobThread-" + jobId + "-" + System.currentTimeMillis());
+
+        while (runSwitch()) {
+        }
+    }
+
+    public ResponseResult<Boolean> pushTriggerQueue(JobParam triggerParam) {
+        // avoid repeat
+        if (triggerLogIdSet.contains(triggerParam.getLogId())) {
+            log.info(MessageUtil.format("repeate trigger job", "logId", triggerParam.getLogId()));
+            return ResponseResult.error(ResponseCodeEnum.BUSINESS_EXCEPTION.getCode(),
+                    MessageUtil.format("repeate trigger job", "logId", triggerParam.getLogId()), Boolean.FALSE);
+        }
+
+        triggerLogIdSet.add(triggerParam.getLogId());
+
+        triggerQueue.add(triggerParam);
+
+        return ResponseResult.success(Boolean.TRUE);
+    }
+
+    public boolean runSwitch() {
+        if (toStop) {
+            log.info(MessageUtil.format("job killed", "jobId", jobId));
+            Thread.currentThread().interrupt();
+            return Boolean.FALSE;
+        }
+
+        if (Thread.currentThread().isInterrupted()) {
+            log.info(MessageUtil.format("job interrupted", "jobId", jobId));
+            return Boolean.FALSE;
+        }
+
+        return Boolean.TRUE;
+    }
+
+    public void toStop(String stopReason) {
+        this.toStop = Boolean.TRUE;
+
+        this.stopReason = stopReason;
+    }
+
+    public boolean isRunningOrHasQueue() {
+        return running || triggerQueue.size() > 0;
     }
 }
