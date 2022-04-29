@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author : shichunyang
@@ -42,7 +43,7 @@ public class Job implements Runnable {
 
     private volatile boolean running = Boolean.FALSE;
 
-    private volatile int idleTimes = NumberUtil.ZERO.intValue();
+    private int idleTimes = NumberUtil.ZERO.intValue();
 
     public Job(int jobId, JobHandler handler) {
         this.jobId = jobId;
@@ -67,6 +68,7 @@ public class Job implements Runnable {
         }
 
         while (runSwitch()) {
+            runJob();
         }
 
         while (triggerQueue.size() > 0) {
@@ -84,9 +86,42 @@ public class Job implements Runnable {
             log.error(MessageUtil.format("handler destroy error", e));
         }
 
-        log.info(MessageUtil.format("job stopped", "thread", Thread.currentThread().getName()));
-
         Thread.currentThread().setName(tmpThreadName);
+    }
+
+    private void runJob() {
+        running = Boolean.FALSE;
+        idleTimes++;
+        JobParam triggerParam = null;
+
+        try {
+            triggerParam = triggerQueue.poll(3L, TimeUnit.SECONDS);
+            if (Objects.isNull(triggerParam)) {
+                if (idleTimes > 60 && triggerQueue.isEmpty()) {
+                    // TODO 销毁任务
+                }
+                return;
+            }
+
+            running = Boolean.TRUE;
+            idleTimes = NumberUtil.ZERO.intValue();
+            triggerLogIdSet.remove(triggerParam.getLogId());
+        } catch (Throwable throwable) {
+            if (toStop) {
+                log.error(MessageUtil.format("job killed", throwable, "stopReason", stopReason));
+            } else {
+                log.error(MessageUtil.format("job exception", throwable));
+            }
+        } finally {
+            if (Objects.nonNull(triggerParam)) {
+                // TODO 回调通知
+                long logId = triggerParam.getLogId();
+                long logDateTime = triggerParam.getLogDateTime();
+                if (!toStop) {
+                } else {
+                }
+            }
+        }
     }
 
     public ResponseResult<Boolean> pushTriggerQueue(JobParam triggerParam) {
