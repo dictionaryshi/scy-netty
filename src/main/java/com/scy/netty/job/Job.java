@@ -43,7 +43,7 @@ public class Job implements Runnable {
 
     private volatile boolean running = Boolean.FALSE;
 
-    private volatile int idleTimes = NumberUtil.ZERO.intValue();
+    private int idleTimes = NumberUtil.ZERO.intValue();
 
     public Job(int jobId, JobHandler handler) {
         this.jobId = jobId;
@@ -85,8 +85,6 @@ public class Job implements Runnable {
         } catch (Throwable e) {
             log.error(MessageUtil.format("handler destroy error", e));
         }
-
-        log.info(MessageUtil.format("job stopped", "thread", Thread.currentThread().getName()));
 
         Thread.currentThread().setName(tmpThreadName);
     }
