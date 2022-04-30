@@ -51,8 +51,8 @@ public class JobContext {
         this.code = CODE_SUCCESS;
     }
 
-    public static void setJobContext(JobContext xxlJobContext) {
-        ThreadLocalUtil.put(JOB_CONTEXT, xxlJobContext);
+    public static void setJobContext(JobContext jobContext) {
+        ThreadLocalUtil.put(JOB_CONTEXT, jobContext);
     }
 
     public static JobContext getJobContext() {
