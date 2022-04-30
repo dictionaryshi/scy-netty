@@ -55,4 +55,9 @@ public class MethodJobHandler implements JobHandler {
             destroyMethod.invoke(target);
         }
     }
+
+    @Override
+    public String toString() {
+        return target.getClass() + "#" + method.getName();
+    }
 }

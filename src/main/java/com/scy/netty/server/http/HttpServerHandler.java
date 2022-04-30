@@ -1,5 +1,7 @@
 package com.scy.netty.server.http;
 
+import com.scy.netty.job.Job;
+import com.scy.netty.job.JobHandler;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -7,6 +9,10 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author : shichunyang
@@ -22,6 +28,32 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
     public static final HttpServerHandler INSTANCE = new HttpServerHandler();
 
     private HttpServerHandler() {
+    }
+
+    private static final ConcurrentMap<Integer, Job> JOB_MAP = new ConcurrentHashMap<>();
+
+    public static Job registerJob(int jobId, JobHandler handler, String removeOldReason) {
+        Job newJob = new Job(jobId, handler);
+
+        Job oldJob = JOB_MAP.put(jobId, newJob);
+        if (Objects.nonNull(oldJob)) {
+            oldJob.toStop(removeOldReason);
+        }
+
+        return newJob;
+    }
+
+    public static Job removeJob(int jobId, String removeOldReason) {
+        Job oldJob = JOB_MAP.remove(jobId);
+        if (Objects.nonNull(oldJob)) {
+            oldJob.toStop(removeOldReason);
+            return oldJob;
+        }
+        return null;
+    }
+
+    public static Job loadJob(int jobId) {
+        return JOB_MAP.get(jobId);
     }
 
     @Override

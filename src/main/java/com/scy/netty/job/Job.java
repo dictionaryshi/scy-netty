@@ -6,6 +6,7 @@ import com.scy.core.format.MessageUtil;
 import com.scy.core.format.NumberUtil;
 import com.scy.core.rest.ResponseResult;
 import com.scy.core.thread.ThreadPoolUtil;
+import com.scy.netty.server.http.HttpServerHandler;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -103,7 +104,7 @@ public class Job implements Runnable {
             triggerParam = triggerQueue.poll(3L, TimeUnit.SECONDS);
             if (Objects.isNull(triggerParam)) {
                 if (idleTimes > 60 && triggerQueue.isEmpty()) {
-                    // TODO 销毁任务
+                    HttpServerHandler.removeJob(jobId, "executor idle times over limit");
                 }
                 return;
             }
