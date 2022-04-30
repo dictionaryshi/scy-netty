@@ -39,6 +39,8 @@ public class JobContext {
 
     private String msg;
 
+    private String jobLogFileName;
+
     public JobContext(long jobId, long logId, String jobParam, int shardIndex, int shardTotal) {
         this.jobId = jobId;
 
@@ -99,5 +101,27 @@ public class JobContext {
         }
 
         return jobContext.getShardTotal();
+    }
+
+    public static boolean handleResult(int code, String msg) {
+        JobContext jobContext = getJobContext();
+        if (Objects.isNull(jobContext)) {
+            return Boolean.FALSE;
+        }
+
+        jobContext.setCode(code);
+
+        jobContext.setMsg(msg);
+
+        return Boolean.TRUE;
+    }
+
+    public static String queryJobLogFileName() {
+        JobContext jobContext = getJobContext();
+        if (Objects.isNull(jobContext)) {
+            return null;
+        }
+
+        return jobContext.getJobLogFileName();
     }
 }
