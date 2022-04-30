@@ -106,6 +106,10 @@ public class Job implements Runnable {
             running = Boolean.TRUE;
             idleTimes = NumberUtil.ZERO.intValue();
             triggerLogIdSet.remove(triggerParam.getLogId());
+
+            JobContext jobContext = new JobContext(triggerParam.getJobId(), triggerParam.getLogId(), triggerParam.getExecutorParams(),
+                    triggerParam.getBroadcastIndex(), triggerParam.getBroadcastTotal());
+            JobContext.setJobContext(jobContext);
         } catch (Throwable throwable) {
             if (toStop) {
                 log.error(MessageUtil.format("job killed", throwable, "stopReason", stopReason));
@@ -121,6 +125,8 @@ public class Job implements Runnable {
                 } else {
                 }
             }
+
+            JobContext.clearJobContext();
         }
     }
 
