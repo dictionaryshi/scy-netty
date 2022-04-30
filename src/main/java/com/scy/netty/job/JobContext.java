@@ -4,6 +4,8 @@ import com.scy.core.thread.ThreadLocalUtil;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
+
 /**
  * @author : shichunyang
  * Date    : 2022/4/30
@@ -61,5 +63,41 @@ public class JobContext {
 
     public static void clearJobContext() {
         ThreadLocalUtil.remove(JOB_CONTEXT);
+    }
+
+    public static long queryJobId() {
+        JobContext jobContext = getJobContext();
+        if (Objects.isNull(jobContext)) {
+            return -1;
+        }
+
+        return jobContext.getJobId();
+    }
+
+    public static String queryJobParam() {
+        JobContext jobContext = getJobContext();
+        if (Objects.isNull(jobContext)) {
+            return null;
+        }
+
+        return jobContext.getJobParam();
+    }
+
+    public static int queryShardIndex() {
+        JobContext jobContext = getJobContext();
+        if (Objects.isNull(jobContext)) {
+            return -1;
+        }
+
+        return jobContext.getShardIndex();
+    }
+
+    public static int queryShardTotal() {
+        JobContext jobContext = getJobContext();
+        if (Objects.isNull(jobContext)) {
+            return -1;
+        }
+
+        return jobContext.getShardTotal();
     }
 }
