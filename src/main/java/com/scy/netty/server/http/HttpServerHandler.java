@@ -1,5 +1,6 @@
 package com.scy.netty.server.http;
 
+import com.scy.core.thread.ThreadPoolUtil;
 import com.scy.netty.job.Job;
 import com.scy.netty.job.JobHandler;
 import io.netty.buffer.Unpooled;
@@ -13,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author : shichunyang
@@ -30,10 +32,14 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
     private HttpServerHandler() {
     }
 
+    public static final ThreadPoolExecutor THREAD_POOL_EXECUTOR = ThreadPoolUtil.getThreadPool("job-pool", 10, 200, 1024);
+
     private static final ConcurrentMap<Integer, Job> JOB_MAP = new ConcurrentHashMap<>();
 
     public static Job registerJob(int jobId, JobHandler handler, String removeOldReason) {
         Job newJob = new Job(jobId, handler);
+
+        THREAD_POOL_EXECUTOR.execute(newJob);
 
         Job oldJob = JOB_MAP.put(jobId, newJob);
         if (Objects.nonNull(oldJob)) {
