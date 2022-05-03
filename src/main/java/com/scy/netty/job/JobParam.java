@@ -18,11 +18,13 @@ public class JobParam {
 
     private int jobId;
 
+    private int jobType;
+
     private String executorHandler;
 
     private String executorParams;
 
-    private String executorBlockStrategy;
+    private int executorBlockStrategy;
 
     private int executorTimeout;
 
