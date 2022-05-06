@@ -79,9 +79,9 @@ public class Provider implements BeanPostProcessor {
 
     public static String getThreadPoolName(String interfaceName, String version) {
         if (StringUtil.isEmpty(version)) {
-            return interfaceName.concat("-rpc-pool");
+            return interfaceName.concat("-rpc");
         }
-        return interfaceName.concat("-").concat(version).concat("-rpc-pool");
+        return interfaceName.concat("-").concat(version).concat("-rpc");
     }
 
     public static String getServiceKey(String interfaceName, String version) {
