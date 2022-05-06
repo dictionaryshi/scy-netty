@@ -4,6 +4,8 @@ import com.scy.core.thread.ThreadLocalUtil;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
+
 /**
  * @author : shichunyang
  * Date    : 2022/4/30
@@ -37,6 +39,8 @@ public class JobContext {
 
     private String msg;
 
+    private String jobLogFileName;
+
     public JobContext(long jobId, long logId, String jobParam, int shardIndex, int shardTotal) {
         this.jobId = jobId;
 
@@ -61,5 +65,63 @@ public class JobContext {
 
     public static void clearJobContext() {
         ThreadLocalUtil.remove(JOB_CONTEXT);
+    }
+
+    public static long queryJobId() {
+        JobContext jobContext = getJobContext();
+        if (Objects.isNull(jobContext)) {
+            return -1;
+        }
+
+        return jobContext.getJobId();
+    }
+
+    public static String queryJobParam() {
+        JobContext jobContext = getJobContext();
+        if (Objects.isNull(jobContext)) {
+            return null;
+        }
+
+        return jobContext.getJobParam();
+    }
+
+    public static int queryShardIndex() {
+        JobContext jobContext = getJobContext();
+        if (Objects.isNull(jobContext)) {
+            return -1;
+        }
+
+        return jobContext.getShardIndex();
+    }
+
+    public static int queryShardTotal() {
+        JobContext jobContext = getJobContext();
+        if (Objects.isNull(jobContext)) {
+            return -1;
+        }
+
+        return jobContext.getShardTotal();
+    }
+
+    public static boolean handleResult(int code, String msg) {
+        JobContext jobContext = getJobContext();
+        if (Objects.isNull(jobContext)) {
+            return Boolean.FALSE;
+        }
+
+        jobContext.setCode(code);
+
+        jobContext.setMsg(msg);
+
+        return Boolean.TRUE;
+    }
+
+    public static String queryJobLogFileName() {
+        JobContext jobContext = getJobContext();
+        if (Objects.isNull(jobContext)) {
+            return null;
+        }
+
+        return jobContext.getJobLogFileName();
     }
 }

@@ -1,9 +1,12 @@
 package com.scy.netty.job;
 
 import com.scy.core.enums.ResponseCodeEnum;
+import com.scy.core.exception.ExceptionUtil;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.format.NumberUtil;
 import com.scy.core.rest.ResponseResult;
+import com.scy.core.thread.ThreadPoolUtil;
+import com.scy.netty.server.http.HttpServerHandler;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -13,8 +16,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * @author : shichunyang
@@ -45,6 +47,8 @@ public class Job implements Runnable {
 
     private int idleTimes = NumberUtil.ZERO.intValue();
 
+    private ThreadPoolExecutor threadPoolExecutor;
+
     public Job(int jobId, JobHandler handler) {
         this.jobId = jobId;
 
@@ -53,6 +57,8 @@ public class Job implements Runnable {
         this.triggerQueue = new LinkedBlockingQueue<>();
 
         this.triggerLogIdSet = Collections.synchronizedSet(new HashSet<>());
+
+        this.threadPoolExecutor = ThreadPoolUtil.getThreadPool("job-" + jobId + "-pool", 10, 30, 1024);
     }
 
     @Override
@@ -98,7 +104,7 @@ public class Job implements Runnable {
             triggerParam = triggerQueue.poll(3L, TimeUnit.SECONDS);
             if (Objects.isNull(triggerParam)) {
                 if (idleTimes > 60 && triggerQueue.isEmpty()) {
-                    // TODO 销毁任务
+                    HttpServerHandler.removeJob(jobId, "executor idle times over limit");
                 }
                 return;
             }
@@ -110,12 +116,33 @@ public class Job implements Runnable {
             JobContext jobContext = new JobContext(triggerParam.getJobId(), triggerParam.getLogId(), triggerParam.getExecutorParams(),
                     triggerParam.getBroadcastIndex(), triggerParam.getBroadcastTotal());
             JobContext.setJobContext(jobContext);
+
+            if (triggerParam.getExecutorTimeout() > 0) {
+                try {
+                    CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
+                        try {
+                            handler.execute();
+                        } catch (Exception exception) {
+                            log.error(MessageUtil.format("job execute exception", exception));
+                            JobContext.handleResult(JobContext.CODE_FAIL, ExceptionUtil.getExceptionMessage(exception));
+                        }
+                    }, threadPoolExecutor);
+
+                    completableFuture.get(triggerParam.getExecutorTimeout(), TimeUnit.SECONDS);
+                } catch (TimeoutException e) {
+                    JobContext.handleResult(JobContext.CODE_TIMEOUT, "job timeout");
+                }
+            } else {
+                handler.execute();
+            }
         } catch (Throwable throwable) {
             if (toStop) {
                 log.error(MessageUtil.format("job killed", throwable, "stopReason", stopReason));
             } else {
                 log.error(MessageUtil.format("job exception", throwable));
             }
+
+            JobContext.handleResult(JobContext.CODE_FAIL, ExceptionUtil.getExceptionMessage(throwable));
         } finally {
             if (Objects.nonNull(triggerParam)) {
                 // TODO 回调通知
