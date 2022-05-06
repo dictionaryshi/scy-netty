@@ -74,23 +74,25 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
     public void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest) throws Exception {
         boolean keepAlive = HttpUtil.isKeepAlive(fullHttpRequest);
 
+        HttpMethod httpMethod = fullHttpRequest.method();
+
+        HttpHeaders headers = fullHttpRequest.headers();
+
+        QueryStringDecoder queryStringDecoder = new QueryStringDecoder(fullHttpRequest.uri());
+
+        String requestData = fullHttpRequest.content().toString(CharsetUtil.UTF_8);
+
         JOB_NETTY_POOL.execute(() -> {
-            ResponseResult<Boolean> responseResult = process(fullHttpRequest);
+            ResponseResult<Boolean> responseResult = process(httpMethod, headers, queryStringDecoder, requestData);
             writeResponse(channelHandlerContext, keepAlive, JsonUtil.object2Json(responseResult));
         });
     }
 
-    private ResponseResult<Boolean> process(FullHttpRequest fullHttpRequest) {
-        HttpMethod httpMethod = fullHttpRequest.method();
+    private ResponseResult<Boolean> process(HttpMethod httpMethod, HttpHeaders headers, QueryStringDecoder queryStringDecoder, String requestData) {
         if (HttpMethod.POST != httpMethod) {
             return ResponseResult.error(JobContext.CODE_FAIL, "HttpMethod not support", Boolean.FALSE);
         }
 
-        HttpHeaders headers = fullHttpRequest.headers();
-
-        String requestData = fullHttpRequest.content().toString(CharsetUtil.UTF_8);
-
-        QueryStringDecoder queryStringDecoder = new QueryStringDecoder(fullHttpRequest.uri());
         String uri = queryStringDecoder.path();
         try {
             JobParam jobParam = JsonUtil.json2Object(requestData, JOB_PARAM_TYPE_REFERENCE);
