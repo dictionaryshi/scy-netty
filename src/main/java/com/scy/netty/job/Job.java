@@ -61,10 +61,6 @@ public class Job implements Runnable {
 
     @Override
     public void run() {
-        String tmpThreadName = Thread.currentThread().getName();
-
-        Thread.currentThread().setName("JobThread-" + jobId + "-" + System.currentTimeMillis());
-
         try {
             handler.init();
         } catch (Exception e) {
@@ -89,8 +85,6 @@ public class Job implements Runnable {
         } catch (Throwable e) {
             log.error(MessageUtil.format("handler destroy error", e));
         }
-
-        Thread.currentThread().setName(tmpThreadName);
     }
 
     private void runJob() {
