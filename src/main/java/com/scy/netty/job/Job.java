@@ -58,7 +58,7 @@ public class Job implements Runnable {
 
         this.triggerLogIdSet = Collections.synchronizedSet(new HashSet<>());
 
-        this.threadPoolExecutor = ThreadPoolUtil.getThreadPool("job-" + jobId + "-pool", 10, 30, 1024);
+        this.threadPoolExecutor = ThreadPoolUtil.getThreadPool("job-" + jobId, 10, 30, 1024);
     }
 
     @Override

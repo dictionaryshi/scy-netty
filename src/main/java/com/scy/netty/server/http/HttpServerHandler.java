@@ -35,9 +35,9 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
     private HttpServerHandler() {
     }
 
-    public static final ThreadPoolExecutor THREAD_POOL_EXECUTOR = ThreadPoolUtil.getThreadPool("job-pool", 10, 200, 1024);
+    public static final ThreadPoolExecutor THREAD_POOL_EXECUTOR = ThreadPoolUtil.getThreadPool("job", 10, 200, 1024);
 
-    public static final ThreadPoolExecutor JOB_NETTY_POOL = ThreadPoolUtil.getThreadPool("job-netty-pool", 10, 200, 500);
+    public static final ThreadPoolExecutor JOB_NETTY_POOL = ThreadPoolUtil.getThreadPool("job-netty", 10, 200, 500);
 
     public static final TypeReference<JobParam> JOB_PARAM_TYPE_REFERENCE = new TypeReference<JobParam>() {
     };
