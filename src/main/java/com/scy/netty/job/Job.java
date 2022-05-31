@@ -6,6 +6,7 @@ import com.scy.core.format.MessageUtil;
 import com.scy.core.format.NumberUtil;
 import com.scy.core.rest.ResponseResult;
 import com.scy.core.thread.ThreadPoolUtil;
+import com.scy.core.trace.TraceUtil;
 import com.scy.netty.server.http.HttpServerHandler;
 import lombok.Getter;
 import lombok.Setter;
@@ -68,7 +69,12 @@ public class Job implements Runnable {
         }
 
         while (runSwitch()) {
-            runJob();
+            try {
+                TraceUtil.setTraceId(null);
+                runJob();
+            } finally {
+                TraceUtil.clearTrace();
+            }
         }
 
         while (triggerQueue.size() > 0) {
