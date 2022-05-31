@@ -1,5 +1,6 @@
 package com.scy.netty.job;
 
+import com.scy.core.StringUtil;
 import com.scy.core.enums.ResponseCodeEnum;
 import com.scy.core.exception.ExceptionUtil;
 import com.scy.core.format.MessageUtil;
@@ -102,10 +103,13 @@ public class Job implements Runnable {
             triggerParam = triggerQueue.poll(3L, TimeUnit.SECONDS);
             if (Objects.isNull(triggerParam)) {
                 if (idleTimes > 60 && triggerQueue.isEmpty()) {
+                    log.info(MessageUtil.format("executor idle times over limit", "jobId", jobId));
                     HttpServerHandler.removeJob(jobId, "executor idle times over limit");
                 }
                 return;
             }
+
+            long startTime = System.currentTimeMillis();
 
             running = Boolean.TRUE;
             idleTimes = NumberUtil.ZERO.intValue();
@@ -127,11 +131,14 @@ public class Job implements Runnable {
 
                     completableFuture.get(triggerParam.getExecutorTimeout(), TimeUnit.SECONDS);
                 } catch (TimeoutException e) {
+                    log.info(MessageUtil.format("job timeout", "jobId", jobId, "logId", triggerParam.getLogId()));
                     JobContext.handleResult(JobContext.CODE_TIMEOUT, "job timeout");
                 }
             } else {
                 handler.execute();
             }
+
+            log.info(MessageUtil.format("job end", "triggerParam", triggerParam, StringUtil.COST, System.currentTimeMillis() - startTime));
         } catch (Throwable throwable) {
             if (toStop) {
                 log.error(MessageUtil.format("job killed", throwable, "stopReason", stopReason));
