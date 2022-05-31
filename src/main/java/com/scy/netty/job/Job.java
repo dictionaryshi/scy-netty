@@ -103,7 +103,6 @@ public class Job implements Runnable {
 
             running = Boolean.TRUE;
             idleTimes = NumberUtil.ZERO.intValue();
-            triggerLogIdSet.remove(triggerParam.getLogId());
 
             JobContext jobContext = new JobContext(triggerParam.getJobId(), triggerParam.getLogId(), triggerParam.getExecutorParams(),
                     triggerParam.getBroadcastIndex(), triggerParam.getBroadcastTotal());
@@ -143,6 +142,8 @@ public class Job implements Runnable {
                 if (!toStop) {
                 } else {
                 }
+
+                triggerLogIdSet.remove(triggerParam.getLogId());
             }
 
             JobContext.clearJobContext();
