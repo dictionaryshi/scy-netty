@@ -57,7 +57,7 @@ public class Executor {
         }
 
         Job job = HttpServerHandler.loadJob(jobParam.getJobId());
-        if (Objects.isNull(job)) {
+        if (Objects.isNull(job) || job.isToStop()) {
             job = HttpServerHandler.registerJob(jobParam.getJobId(), jobHandler, StringUtil.EMPTY);
             return job.pushTriggerQueue(jobParam);
         }
