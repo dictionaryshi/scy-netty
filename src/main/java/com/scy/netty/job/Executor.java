@@ -22,7 +22,7 @@ public class Executor {
 
     public static ResponseResult<Boolean> idleBeat(JobParam jobParam) {
         Job job = HttpServerHandler.loadJob(jobParam.getJobId());
-        if (Objects.nonNull(job) && job.isRunningOrHasQueue()) {
+        if (Objects.nonNull(job) && !job.isToStop() && job.isRunningOrHasQueue()) {
             return ResponseResult.error(JobContext.CODE_FAIL, "job is running or has trigger queue", Boolean.FALSE);
         }
 
