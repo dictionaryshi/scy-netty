@@ -47,7 +47,7 @@ public class Job implements Runnable {
 
     private int idleTimes = NumberUtil.ZERO.intValue();
 
-    private ThreadPoolExecutor threadPoolExecutor;
+    private static final ThreadPoolExecutor TIME_OUT_THREAD_POOL = ThreadPoolUtil.getThreadPool("job-time-out", 10, 30, 1024);
 
     public Job(int jobId, JobHandler handler) {
         this.jobId = jobId;
@@ -57,16 +57,10 @@ public class Job implements Runnable {
         this.triggerQueue = new LinkedBlockingQueue<>();
 
         this.triggerLogIdSet = Collections.synchronizedSet(new HashSet<>());
-
-        this.threadPoolExecutor = ThreadPoolUtil.getThreadPool("job-" + jobId, 10, 30, 1024);
     }
 
     @Override
     public void run() {
-        String tmpThreadName = Thread.currentThread().getName();
-
-        Thread.currentThread().setName("JobThread-" + jobId + "-" + System.currentTimeMillis());
-
         try {
             handler.init();
         } catch (Exception e) {
@@ -91,8 +85,6 @@ public class Job implements Runnable {
         } catch (Throwable e) {
             log.error(MessageUtil.format("handler destroy error", e));
         }
-
-        Thread.currentThread().setName(tmpThreadName);
     }
 
     private void runJob() {
@@ -126,7 +118,7 @@ public class Job implements Runnable {
                             log.error(MessageUtil.format("job execute exception", exception));
                             JobContext.handleResult(JobContext.CODE_FAIL, ExceptionUtil.getExceptionMessage(exception));
                         }
-                    }, threadPoolExecutor);
+                    }, TIME_OUT_THREAD_POOL);
 
                     completableFuture.get(triggerParam.getExecutorTimeout(), TimeUnit.SECONDS);
                 } catch (TimeoutException e) {
