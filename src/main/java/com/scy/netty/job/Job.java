@@ -130,19 +130,18 @@ public class Job implements Runnable {
 
             if (triggerParam.getExecutorTimeout() > 0) {
                 try {
-                    JobParam finalTriggerParam = triggerParam;
                     CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
                         try {
                             handler.execute();
                         } catch (Exception exception) {
-                            JobLogUtil.log(MessageUtil.format("job execute exception", exception, "triggerParam", finalTriggerParam));
+                            JobLogUtil.log(MessageUtil.format("job execute exception", exception));
                             JobContext.handleResult(JobContext.CODE_FAIL, ExceptionUtil.getExceptionMessage(exception));
                         }
                     }, TIME_OUT_THREAD_POOL);
 
                     completableFuture.get(triggerParam.getExecutorTimeout(), TimeUnit.SECONDS);
                 } catch (TimeoutException e) {
-                    JobLogUtil.log(MessageUtil.format("job timeout", "triggerParam", triggerParam));
+                    JobLogUtil.log(MessageUtil.format("job timeout"));
                     JobContext.handleResult(JobContext.CODE_TIMEOUT, "job timeout");
                 }
             } else {
