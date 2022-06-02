@@ -1,6 +1,7 @@
 package com.scy.netty.job;
 
 import com.scy.core.StringUtil;
+import com.scy.core.enums.JvmStatus;
 import com.scy.core.enums.ResponseCodeEnum;
 import com.scy.core.exception.ExceptionUtil;
 import com.scy.core.format.MessageUtil;
@@ -51,6 +52,8 @@ public class Job implements Runnable {
 
     private static final ThreadPoolExecutor TIME_OUT_THREAD_POOL = ThreadPoolUtil.getThreadPool("job-time-out", 10, 30, 1024);
 
+    private static final ConcurrentHashMap<Integer, Thread> JOB_THREAD_MAP = new ConcurrentHashMap<>();
+
     public Job(int jobId, JobHandler handler) {
         this.jobId = jobId;
 
@@ -63,6 +66,11 @@ public class Job implements Runnable {
 
     @Override
     public void run() {
+        Thread oldJobThread = JOB_THREAD_MAP.put(jobId, Thread.currentThread());
+        if (Objects.nonNull(oldJobThread)) {
+            oldJobThread.interrupt();
+        }
+
         try {
             handler.init();
         } catch (Exception e) {
@@ -181,7 +189,11 @@ public class Job implements Runnable {
     public boolean runSwitch() {
         if (toStop) {
             log.info(MessageUtil.format("job killed", "jobId", jobId));
-            Thread.currentThread().interrupt();
+            return Boolean.FALSE;
+        }
+
+        if (JvmStatus.JVM_CLOSE_FLAG) {
+            log.info(MessageUtil.format("jvm closing", "jobId", jobId));
             return Boolean.FALSE;
         }
 
@@ -197,6 +209,11 @@ public class Job implements Runnable {
         this.toStop = Boolean.TRUE;
 
         this.stopReason = stopReason;
+
+        Thread jobThread = JOB_THREAD_MAP.get(jobId);
+        if (Objects.nonNull(jobThread)) {
+            jobThread.interrupt();
+        }
     }
 
     public boolean isRunningOrHasQueue() {
