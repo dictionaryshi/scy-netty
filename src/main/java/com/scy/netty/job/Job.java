@@ -11,6 +11,7 @@ import com.scy.core.format.NumberUtil;
 import com.scy.core.rest.ResponseResult;
 import com.scy.core.thread.ThreadPoolUtil;
 import com.scy.core.trace.TraceUtil;
+import com.scy.netty.job.util.JobLogUtil;
 import com.scy.netty.server.http.HttpServerHandler;
 import lombok.Getter;
 import lombok.Setter;
@@ -147,7 +148,7 @@ public class Job implements Runnable {
                 handler.execute();
             }
 
-            log.info(MessageUtil.format("job end", "triggerParam", triggerParam, StringUtil.COST, System.currentTimeMillis() - startTime));
+            JobLogUtil.log(MessageUtil.format("job end", "triggerParam", triggerParam, StringUtil.COST, System.currentTimeMillis() - startTime));
         } catch (Throwable throwable) {
             if (toStop) {
                 log.error(MessageUtil.format("job killed", throwable, "stopReason", stopReason));
