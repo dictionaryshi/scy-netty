@@ -1,9 +1,11 @@
 package com.scy.netty.job;
 
+import com.scy.core.IOUtil;
 import com.scy.core.StringUtil;
 import com.scy.core.enums.JvmStatus;
 import com.scy.core.enums.ResponseCodeEnum;
 import com.scy.core.exception.ExceptionUtil;
+import com.scy.core.format.DateUtil;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.format.NumberUtil;
 import com.scy.core.rest.ResponseResult;
@@ -15,10 +17,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -124,6 +123,8 @@ public class Job implements Runnable {
 
             JobContext jobContext = new JobContext(triggerParam.getJobId(), triggerParam.getLogId(), triggerParam.getExecutorParams(),
                     triggerParam.getBroadcastIndex(), triggerParam.getBroadcastTotal());
+            jobContext.setJobLogFileName(IOUtil.getFile(IOUtil.getUserDirectory(),
+                    "job_log", DateUtil.date2Str(new Date(triggerParam.getLogDateTime()), DateUtil.PATTERN_DAY), String.valueOf(triggerParam.getLogId()).concat(".log")).getAbsolutePath());
             JobContext.setJobContext(jobContext);
 
             if (triggerParam.getExecutorTimeout() > 0) {
