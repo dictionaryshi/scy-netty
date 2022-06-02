@@ -130,18 +130,19 @@ public class Job implements Runnable {
 
             if (triggerParam.getExecutorTimeout() > 0) {
                 try {
+                    JobParam finalTriggerParam = triggerParam;
                     CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
                         try {
                             handler.execute();
                         } catch (Exception exception) {
-                            log.error(MessageUtil.format("job execute exception", exception));
+                            JobLogUtil.log(MessageUtil.format("job execute exception", exception, "triggerParam", finalTriggerParam));
                             JobContext.handleResult(JobContext.CODE_FAIL, ExceptionUtil.getExceptionMessage(exception));
                         }
                     }, TIME_OUT_THREAD_POOL);
 
                     completableFuture.get(triggerParam.getExecutorTimeout(), TimeUnit.SECONDS);
                 } catch (TimeoutException e) {
-                    log.info(MessageUtil.format("job timeout", "jobId", jobId, "logId", triggerParam.getLogId()));
+                    JobLogUtil.log(MessageUtil.format("job timeout", "triggerParam", triggerParam));
                     JobContext.handleResult(JobContext.CODE_TIMEOUT, "job timeout");
                 }
             } else {
@@ -152,8 +153,16 @@ public class Job implements Runnable {
         } catch (Throwable throwable) {
             if (toStop) {
                 log.error(MessageUtil.format("job killed", throwable, "stopReason", stopReason));
+
+                if (Objects.nonNull(triggerParam)) {
+                    JobLogUtil.log(MessageUtil.format("job killed", throwable, "stopReason", stopReason, "triggerParam", triggerParam));
+                }
             } else {
                 log.error(MessageUtil.format("job exception", throwable));
+
+                if (Objects.nonNull(triggerParam)) {
+                    JobLogUtil.log(MessageUtil.format("job exception", throwable, "triggerParam", triggerParam));
+                }
             }
 
             JobContext.handleResult(JobContext.CODE_FAIL, ExceptionUtil.getExceptionMessage(throwable));
