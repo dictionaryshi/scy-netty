@@ -69,9 +69,11 @@ public class JobConfig implements SmartInitializingSingleton {
         address = MessageFormatUtil.format(ADDRESS_TEMPLATE, NetworkInterfaceUtil.getIpPort(ip, port));
 
         nettyHttpServer.setStartedCallback(() -> {
+            // TODO
         });
 
         nettyHttpServer.setBeforeStopCallback(() -> {
+            // TODO
         });
 
         ServerConfig serverConfig = new ServerConfig();
