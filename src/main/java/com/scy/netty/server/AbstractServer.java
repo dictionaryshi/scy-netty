@@ -26,9 +26,7 @@ public abstract class AbstractServer {
 
     public abstract void start(ServerConfig serverConfig) throws Exception;
 
-    public abstract void stopBossGroup();
-
-    public abstract void stopWorkerGroup();
+    public abstract void stop();
 
     public void onStarted() {
         if (!ObjectUtil.isNull(startedCallback)) {
