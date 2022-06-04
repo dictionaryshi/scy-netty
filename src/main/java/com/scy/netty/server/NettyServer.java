@@ -97,7 +97,7 @@ public class NettyServer extends AbstractServer {
     }
 
     @Override
-    public void stopBossGroup() {
+    public void stop() {
         closed = Boolean.TRUE;
 
         beforeStop();
@@ -105,11 +105,6 @@ public class NettyServer extends AbstractServer {
         if (!ObjectUtil.isNull(bossGroup)) {
             bossGroup.shutdownGracefully().syncUninterruptibly();
         }
-    }
-
-    @Override
-    public void stopWorkerGroup() {
-        closed = Boolean.TRUE;
 
         if (!Objects.isNull(workerGroup)) {
             workerGroup.shutdownGracefully().syncUninterruptibly();
