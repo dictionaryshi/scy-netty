@@ -60,4 +60,8 @@ public class JobLogUtil {
         return IOUtil.getFile(IOUtil.getUserDirectory(), "job_log",
                 DateUtil.date2Str(new Date(logDateTime), DateUtil.PATTERN_DAY), String.valueOf(logId).concat(".log")).getAbsolutePath();
     }
+
+    public static File getCallbackFileName() {
+        return IOUtil.getFile(IOUtil.getUserDirectory(), "job_call_back", String.valueOf(System.currentTimeMillis()));
+    }
 }
