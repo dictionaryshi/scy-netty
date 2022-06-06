@@ -54,7 +54,7 @@ public class CallbackTask {
                     }
 
                     List<CallbackParam> callbackParamList = new ArrayList<>();
-                    int count = callBackQueue.drainTo(callbackParamList, 10);
+                    int count = callBackQueue.drainTo(callbackParamList, 9);
                     callbackParamList.add(callbackParam);
 
                     callback(callbackParamList);
