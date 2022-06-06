@@ -9,6 +9,7 @@ import com.scy.core.format.MessageUtil;
 import com.scy.core.net.NetworkInterfaceUtil;
 import com.scy.core.spring.ApplicationContextUtil;
 import com.scy.netty.job.annotation.Job;
+import com.scy.netty.job.callback.CallbackTask;
 import com.scy.netty.server.ServerConfig;
 import com.scy.netty.server.http.NettyHttpServer;
 import lombok.Getter;
@@ -58,6 +59,8 @@ public class JobConfig implements SmartInitializingSingleton {
 
             jobMethodMap.forEach((method, job) -> register(bean, method, job));
         });
+
+        CallbackTask.getInstance().start();
 
         nettyHttpServer = new NettyHttpServer();
 
