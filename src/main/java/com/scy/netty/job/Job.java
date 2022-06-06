@@ -124,8 +124,7 @@ public class Job implements Runnable {
 
             JobContext jobContext = new JobContext(triggerParam.getJobId(), triggerParam.getLogId(), triggerParam.getExecutorParams(),
                     triggerParam.getBroadcastIndex(), triggerParam.getBroadcastTotal());
-            jobContext.setJobLogFileName(IOUtil.getFile(IOUtil.getUserDirectory(),
-                    "job_log", DateUtil.date2Str(new Date(triggerParam.getLogDateTime()), DateUtil.PATTERN_DAY), String.valueOf(triggerParam.getLogId()).concat(".log")).getAbsolutePath());
+            jobContext.setJobLogFileName(JobLogUtil.getJobLogFileName(triggerParam.getLogDateTime(), triggerParam.getLogId()));
             JobContext.setJobContext(jobContext);
 
             if (triggerParam.getExecutorTimeout() > 0) {
