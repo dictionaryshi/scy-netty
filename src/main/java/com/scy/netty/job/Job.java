@@ -9,6 +9,8 @@ import com.scy.core.format.NumberUtil;
 import com.scy.core.rest.ResponseResult;
 import com.scy.core.thread.ThreadPoolUtil;
 import com.scy.core.trace.TraceUtil;
+import com.scy.netty.job.callback.CallbackParam;
+import com.scy.netty.job.callback.CallbackTask;
 import com.scy.netty.job.util.JobLogUtil;
 import com.scy.netty.server.http.HttpServerHandler;
 import lombok.Getter;
@@ -87,9 +89,12 @@ public class Job implements Runnable {
         while (triggerQueue.size() > 0) {
             JobParam triggerParam = triggerQueue.poll();
             if (Objects.nonNull(triggerParam)) {
-                // TODO 回调通知
                 long logId = triggerParam.getLogId();
                 long logDateTime = triggerParam.getLogDateTime();
+
+                CallbackParam callbackParam = new CallbackParam(logId, logDateTime, JobContext.CODE_FAIL,
+                        MessageUtil.format("job not executed, in the job queue, killed", "stopReason", stopReason));
+                CallbackTask.pushCallBack(callbackParam);
             }
         }
 
@@ -164,11 +169,15 @@ public class Job implements Runnable {
             JobContext.handleResult(JobContext.CODE_FAIL, ExceptionUtil.getExceptionMessage(throwable));
         } finally {
             if (Objects.nonNull(triggerParam)) {
-                // TODO 回调通知
                 long logId = triggerParam.getLogId();
                 long logDateTime = triggerParam.getLogDateTime();
                 if (!toStop) {
+                    CallbackParam callbackParam = new CallbackParam(logId, logDateTime, JobContext.getJobContext().getCode(), JobContext.getJobContext().getMsg());
+                    CallbackTask.pushCallBack(callbackParam);
                 } else {
+                    CallbackParam callbackParam = new CallbackParam(logId, logDateTime, JobContext.CODE_FAIL,
+                            MessageUtil.format("job running, killed", "stopReason", stopReason));
+                    CallbackTask.pushCallBack(callbackParam);
                 }
 
                 triggerLogIdSet.remove(triggerParam.getLogId());

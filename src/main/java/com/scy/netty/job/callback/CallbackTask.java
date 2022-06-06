@@ -1,12 +1,19 @@
 package com.scy.netty.job.callback;
 
 import com.scy.core.CollectionUtil;
+import com.scy.core.IOUtil;
+import com.scy.core.StringUtil;
+import com.scy.core.SystemUtil;
 import com.scy.core.enums.JvmStatus;
 import com.scy.core.format.MessageUtil;
+import com.scy.core.json.JsonUtil;
 import com.scy.core.thread.ThreadPoolUtil;
+import com.scy.netty.job.util.JobLogUtil;
 import com.scy.netty.server.http.HttpServerHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -76,5 +83,39 @@ public class CallbackTask {
         if (CollectionUtil.isEmpty(callbackParamList)) {
             return;
         }
+
+        boolean flag = push(callbackParamList);
+        if (flag) {
+            return;
+        }
+
+        appendFailCallbackFile(callbackParamList);
+    }
+
+    private void appendFailCallbackFile(List<CallbackParam> callbackParamList) {
+        String callbackParamJson = JsonUtil.object2Json(callbackParamList);
+        if (StringUtil.isEmpty(callbackParamJson)) {
+            return;
+        }
+
+        File callbackLogFile = JobLogUtil.getCallbackFileName();
+        if (callbackLogFile.exists()) {
+            for (int i = 0; i < 1000; i++) {
+                callbackLogFile = new File(callbackLogFile.getAbsolutePath().concat("-").concat(String.valueOf(i)));
+                if (!callbackLogFile.exists()) {
+                    break;
+                }
+            }
+        }
+
+        try {
+            IOUtil.writeStringToFile(callbackLogFile, callbackParamJson, SystemUtil.CHARSET_UTF_8_STR, Boolean.FALSE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean push(List<CallbackParam> callbackParamList) {
+        return Boolean.FALSE;
     }
 }
