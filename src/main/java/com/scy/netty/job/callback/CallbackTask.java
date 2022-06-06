@@ -98,18 +98,18 @@ public class CallbackTask {
             return;
         }
 
-        File callbackLogFile = JobLogUtil.getCallbackFileName();
-        if (callbackLogFile.exists()) {
+        File callbackFile = JobLogUtil.getCallbackFile();
+        if (callbackFile.exists()) {
             for (int i = 0; i < 1000; i++) {
-                callbackLogFile = new File(callbackLogFile.getAbsolutePath().concat("-").concat(String.valueOf(i)));
-                if (!callbackLogFile.exists()) {
+                callbackFile = new File(JobLogUtil.getCallbackFile().getAbsolutePath().concat("-").concat(String.valueOf(i)));
+                if (!callbackFile.exists()) {
                     break;
                 }
             }
         }
 
         try {
-            IOUtil.writeStringToFile(callbackLogFile, callbackParamJson, SystemUtil.CHARSET_UTF_8_STR, Boolean.FALSE);
+            IOUtil.writeStringToFile(callbackFile, callbackParamJson, SystemUtil.CHARSET_UTF_8_STR, Boolean.FALSE);
         } catch (IOException e) {
             e.printStackTrace();
         }
