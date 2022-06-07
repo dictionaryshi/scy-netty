@@ -1,13 +1,11 @@
 package com.scy.netty.job.callback;
 
-import com.scy.core.CollectionUtil;
-import com.scy.core.IOUtil;
-import com.scy.core.StringUtil;
-import com.scy.core.SystemUtil;
+import com.scy.core.*;
 import com.scy.core.enums.JvmStatus;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.json.JsonUtil;
 import com.scy.core.thread.ThreadPoolUtil;
+import com.scy.core.thread.ThreadUtil;
 import com.scy.netty.job.util.JobLogUtil;
 import com.scy.netty.server.http.HttpServerHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +18,8 @@ import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * @author : shichunyang
@@ -34,6 +34,9 @@ public class CallbackTask {
     private final LinkedBlockingQueue<CallbackParam> callBackQueue = new LinkedBlockingQueue<>();
 
     private static final ThreadPoolExecutor THREAD_POOL_EXECUTOR = ThreadPoolUtil.getThreadPool("job-call-back", 5, 5, 5);
+
+    private static final TypeReference<List<CallbackParam>> CALL_BACK_PARAM_TYPE_REFERENCE = new TypeReference<List<CallbackParam>>() {
+    };
 
     private static final CallbackTask INSTANCE = new CallbackTask();
 
@@ -77,6 +80,49 @@ public class CallbackTask {
                 callback(callbackParamList);
             }
         });
+
+        THREAD_POOL_EXECUTOR.execute(() -> {
+            while (!JvmStatus.JVM_CLOSE_FLAG) {
+                ThreadUtil.quietSleep(30_000);
+
+                retryFailCallbackFile();
+            }
+        });
+    }
+
+    private void retryFailCallbackFile() {
+        File callbackLogPath = JobLogUtil.getCallbackFile().getParentFile();
+        if (!callbackLogPath.exists()) {
+            return;
+        }
+
+        if (callbackLogPath.isFile()) {
+            callbackLogPath.delete();
+            return;
+        }
+
+        File[] files = callbackLogPath.listFiles();
+        if (Objects.isNull(files)) {
+            return;
+        }
+
+        for (File callbackFile : files) {
+            try {
+                String callbackParamJson = IOUtil.readFileToString(callbackFile, SystemUtil.CHARSET_UTF_8_STR);
+                if (StringUtil.isEmpty(callbackParamJson)) {
+                    callbackFile.delete();
+                    continue;
+                }
+
+                List<CallbackParam> callbackParamList = JsonUtil.json2Object(callbackParamJson, CALL_BACK_PARAM_TYPE_REFERENCE);
+
+                callbackFile.delete();
+
+                callback(callbackParamList);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void callback(List<CallbackParam> callbackParamList) {
