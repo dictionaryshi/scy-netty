@@ -1,10 +1,16 @@
 package com.scy.netty.job;
 
+import com.scy.core.IOUtil;
 import com.scy.core.StringUtil;
+import com.scy.core.SystemUtil;
+import com.scy.core.exception.ExceptionUtil;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.rest.ResponseResult;
+import com.scy.netty.job.util.JobLogUtil;
 import com.scy.netty.server.http.HttpServerHandler;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 
 /**
@@ -85,5 +91,15 @@ public class Executor {
         }
 
         return null;
+    }
+
+    public static ResponseResult<String> log(JobParam jobParam) {
+        String jobLogFileName = JobLogUtil.getJobLogFileName(jobParam.getLogDateTime(), jobParam.getLogId());
+        try {
+            return ResponseResult.success(IOUtil.readFileToString(new File(jobLogFileName), SystemUtil.CHARSET_UTF_8_STR).replace(SystemUtil.SYSTEM_LINE_BREAK, "</br>"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseResult.error(JobContext.CODE_FAIL, ExceptionUtil.getExceptionMessage(e).replace(SystemUtil.SYSTEM_LINE_BREAK, "</br>").replace("\t", StringUtil.SPACE), null);
+        }
     }
 }
