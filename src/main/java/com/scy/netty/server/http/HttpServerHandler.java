@@ -83,12 +83,12 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
         String requestData = fullHttpRequest.content().toString(CharsetUtil.UTF_8);
 
         JOB_NETTY_POOL.execute(() -> {
-            ResponseResult<Boolean> responseResult = process(httpMethod, headers, queryStringDecoder, requestData);
+            ResponseResult<?> responseResult = process(httpMethod, headers, queryStringDecoder, requestData);
             writeResponse(channelHandlerContext, keepAlive, JsonUtil.object2Json(responseResult));
         });
     }
 
-    private ResponseResult<Boolean> process(HttpMethod httpMethod, HttpHeaders headers, QueryStringDecoder queryStringDecoder, String requestData) {
+    private ResponseResult<?> process(HttpMethod httpMethod, HttpHeaders headers, QueryStringDecoder queryStringDecoder, String requestData) {
         if (HttpMethod.POST != httpMethod) {
             return ResponseResult.error(JobContext.CODE_FAIL, "HttpMethod not support", Boolean.FALSE);
         }
@@ -114,6 +114,10 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
 
             if ("/kill".equals(uri)) {
                 return Executor.kill(jobParam);
+            }
+
+            if ("/log".equals(uri)) {
+                return Executor.log(jobParam);
             }
 
             return ResponseResult.error(JobContext.CODE_FAIL, MessageUtil.format("invalid request", "uri", uri), Boolean.FALSE);
