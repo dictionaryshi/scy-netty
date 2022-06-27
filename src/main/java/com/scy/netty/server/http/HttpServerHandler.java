@@ -1,6 +1,7 @@
 package com.scy.netty.server.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.scy.core.enums.JvmStatus;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.json.JsonUtil;
 import com.scy.core.rest.ResponseResult;
@@ -89,6 +90,10 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
     }
 
     private ResponseResult<?> process(HttpMethod httpMethod, HttpHeaders headers, QueryStringDecoder queryStringDecoder, String requestData) {
+        if (JvmStatus.JVM_CLOSE_FLAG) {
+            return ResponseResult.error(JobContext.CODE_FAIL, "jvm closed", Boolean.FALSE);
+        }
+
         if (HttpMethod.POST != httpMethod) {
             return ResponseResult.error(JobContext.CODE_FAIL, "HttpMethod not support", Boolean.FALSE);
         }
