@@ -90,9 +90,8 @@ public class Job implements Runnable {
             JobParam triggerParam = triggerQueue.poll();
             if (Objects.nonNull(triggerParam)) {
                 long logId = triggerParam.getLogId();
-                long logDateTime = triggerParam.getLogDateTime();
 
-                CallbackParam callbackParam = new CallbackParam(logId, logDateTime, JobContext.CODE_FAIL,
+                CallbackParam callbackParam = new CallbackParam(logId, System.currentTimeMillis(), JobContext.CODE_FAIL,
                         MessageUtil.format("job not executed, in the job queue, killed", "stopReason", stopReason));
                 CallbackTask.pushCallBack(callbackParam);
             }
@@ -170,12 +169,11 @@ public class Job implements Runnable {
         } finally {
             if (Objects.nonNull(triggerParam)) {
                 long logId = triggerParam.getLogId();
-                long logDateTime = triggerParam.getLogDateTime();
                 if (!toStop) {
-                    CallbackParam callbackParam = new CallbackParam(logId, logDateTime, JobContext.getJobContext().getCode(), JobContext.getJobContext().getMsg());
+                    CallbackParam callbackParam = new CallbackParam(logId, System.currentTimeMillis(), JobContext.getJobContext().getCode(), JobContext.getJobContext().getMsg());
                     CallbackTask.pushCallBack(callbackParam);
                 } else {
-                    CallbackParam callbackParam = new CallbackParam(logId, logDateTime, JobContext.CODE_FAIL,
+                    CallbackParam callbackParam = new CallbackParam(logId, System.currentTimeMillis(), JobContext.CODE_FAIL,
                             MessageUtil.format("job running, killed", "stopReason", stopReason));
                     CallbackTask.pushCallBack(callbackParam);
                 }
