@@ -111,7 +111,17 @@ public class CallbackTask {
 
                 ThreadUtil.quietSleep(30_000);
             }
+
+            removeRegistry(appName, address);
         });
+    }
+
+    public void removeRegistry(String appName, String address) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("appName", appName);
+        params.put("address", address);
+        ResponseResult<?> responseResult = HttpUtil.post("http://127.0.0.1:9000/job/registryRemove", params, new TypeReference<ResponseResult<?>>() {
+        }, HttpOptions.build());
     }
 
     private void retryFailCallbackFile() {

@@ -76,7 +76,7 @@ public class JobConfig implements SmartInitializingSingleton {
         });
 
         nettyHttpServer.setBeforeStopCallback(() -> {
-            // TODO
+            CallbackTask.getInstance().removeRegistry(ApplicationContextUtil.getProperty(ApplicationContextUtil.APPLICATION_NAME), address);
         });
 
         ServerConfig serverConfig = new ServerConfig();
