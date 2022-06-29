@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +39,8 @@ public class CallbackTask {
     private static final TypeReference<List<CallbackParam>> CALL_BACK_PARAM_TYPE_REFERENCE = new TypeReference<List<CallbackParam>>() {
     };
 
+    private Thread retryFailCallbackFileThread = null;
+
     private static final CallbackTask INSTANCE = new CallbackTask();
 
     public static CallbackTask getInstance() {
@@ -54,6 +57,7 @@ public class CallbackTask {
             while (true) {
                 if (JvmStatus.JVM_CLOSE_FLAG && HttpServerHandler.THREAD_POOL_EXECUTOR.getActiveCount() <= 0) {
                     log.info("jvm closing job callback break");
+                    Optional.ofNullable(retryFailCallbackFileThread).ifPresent(Thread::interrupt);
                     break;
                 }
 
@@ -82,6 +86,8 @@ public class CallbackTask {
         });
 
         THREAD_POOL_EXECUTOR.execute(() -> {
+            retryFailCallbackFileThread = Thread.currentThread();
+
             while (!JvmStatus.JVM_CLOSE_FLAG) {
                 ThreadUtil.quietSleep(30_000);
 
