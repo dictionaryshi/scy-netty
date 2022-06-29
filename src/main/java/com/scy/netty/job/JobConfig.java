@@ -72,7 +72,7 @@ public class JobConfig implements SmartInitializingSingleton {
         address = MessageFormatUtil.format(ADDRESS_TEMPLATE, NetworkInterfaceUtil.getIpPort(ip, port));
 
         nettyHttpServer.setStartedCallback(() -> {
-            // TODO
+            CallbackTask.getInstance().startRegistry(ApplicationContextUtil.getProperty(ApplicationContextUtil.APPLICATION_NAME), address);
         });
 
         nettyHttpServer.setBeforeStopCallback(() -> {

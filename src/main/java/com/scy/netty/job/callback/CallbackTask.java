@@ -4,6 +4,9 @@ import com.scy.core.*;
 import com.scy.core.enums.JvmStatus;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.json.JsonUtil;
+import com.scy.core.net.HttpOptions;
+import com.scy.core.net.HttpUtil;
+import com.scy.core.rest.ResponseResult;
 import com.scy.core.thread.ThreadPoolUtil;
 import com.scy.core.thread.ThreadUtil;
 import com.scy.netty.job.util.JobLogUtil;
@@ -12,10 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +40,7 @@ public class CallbackTask {
     };
 
     private Thread retryFailCallbackFileThread = null;
+    private Thread registryThread = null;
 
     private static final CallbackTask INSTANCE = new CallbackTask();
 
@@ -58,6 +59,7 @@ public class CallbackTask {
                 if (JvmStatus.JVM_CLOSE_FLAG && HttpServerHandler.THREAD_POOL_EXECUTOR.getActiveCount() <= 0) {
                     log.info("jvm closing job callback break");
                     Optional.ofNullable(retryFailCallbackFileThread).ifPresent(Thread::interrupt);
+                    Optional.ofNullable(registryThread).ifPresent(Thread::interrupt);
                     break;
                 }
 
@@ -92,6 +94,22 @@ public class CallbackTask {
                 ThreadUtil.quietSleep(30_000);
 
                 retryFailCallbackFile();
+            }
+        });
+    }
+
+    public void startRegistry(String appName, String address) {
+        THREAD_POOL_EXECUTOR.execute(() -> {
+            registryThread = Thread.currentThread();
+
+            while (!JvmStatus.JVM_CLOSE_FLAG) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("appName", appName);
+                params.put("address", address);
+                ResponseResult<?> responseResult = HttpUtil.post("http://127.0.0.1:9000/job/registry", params, new TypeReference<ResponseResult<?>>() {
+                }, HttpOptions.build());
+
+                ThreadUtil.quietSleep(30_000);
             }
         });
     }
