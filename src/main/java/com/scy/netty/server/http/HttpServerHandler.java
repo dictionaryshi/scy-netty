@@ -1,6 +1,7 @@
 package com.scy.netty.server.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.scy.core.StringEscapeUtil;
 import com.scy.core.enums.JvmStatus;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.json.JsonUtil;
@@ -85,7 +86,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
 
         JOB_NETTY_POOL.execute(() -> {
             ResponseResult<?> responseResult = process(httpMethod, headers, queryStringDecoder, requestData);
-            writeResponse(channelHandlerContext, keepAlive, JsonUtil.object2Json(responseResult));
+            writeResponse(channelHandlerContext, keepAlive, StringEscapeUtil.unescapeJson(JsonUtil.object2Json(responseResult)));
         });
     }
 
