@@ -99,7 +99,7 @@ public class Executor {
             return ResponseResult.success(IOUtil.readFileToString(new File(jobLogFileName), SystemUtil.CHARSET_UTF_8_STR).replace(SystemUtil.SYSTEM_LINE_BREAK, "</br>"));
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseResult.error(JobContext.CODE_FAIL, ExceptionUtil.getExceptionMessage(e).replace(SystemUtil.SYSTEM_LINE_BREAK, "</br>").replace("\t", StringUtil.SPACE), null);
+            return ResponseResult.error(JobContext.CODE_FAIL, ExceptionUtil.getExceptionMessage(e).replace(SystemUtil.SYSTEM_LINE_BREAK, "</br>"), null);
         }
     }
 }
