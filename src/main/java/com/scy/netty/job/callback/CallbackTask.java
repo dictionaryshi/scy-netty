@@ -200,7 +200,10 @@ public class CallbackTask {
         HttpParam httpParam = new HttpParam();
         httpParam.setRequestUrl("http://127.0.0.1:9000/job/callback");
         httpParam.setRequestMethod(HttpUtil.POST);
-        httpParam.setRequestBody(JsonUtil.object2Json(callbackParamList));
+
+        CallbackRequest callbackRequest = new CallbackRequest();
+        callbackRequest.setCallbackParamList(callbackParamList);
+        httpParam.setRequestBody(JsonUtil.object2Json(callbackRequest));
         httpParam.setHttpOptions(HttpOptions.build().contentType(HttpUtil.APPLICATION_JSON_VALUE));
         ResponseResult<Boolean> responseResult = HttpUtil.httpRequest(httpParam, new TypeReference<ResponseResult<Boolean>>() {
         });
