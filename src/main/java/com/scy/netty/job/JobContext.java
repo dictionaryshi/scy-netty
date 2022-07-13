@@ -52,7 +52,7 @@ public class JobContext {
 
         this.shardTotal = shardTotal;
 
-        this.code = CODE_SUCCESS;
+        this.code = -1;
     }
 
     public static void setJobContext(JobContext jobContext) {

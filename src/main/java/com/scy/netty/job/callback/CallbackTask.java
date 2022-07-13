@@ -5,6 +5,7 @@ import com.scy.core.enums.JvmStatus;
 import com.scy.core.format.MessageUtil;
 import com.scy.core.json.JsonUtil;
 import com.scy.core.net.HttpOptions;
+import com.scy.core.net.HttpParam;
 import com.scy.core.net.HttpUtil;
 import com.scy.core.rest.ResponseResult;
 import com.scy.core.thread.ThreadPoolUtil;
@@ -196,6 +197,13 @@ public class CallbackTask {
     }
 
     private boolean push(List<CallbackParam> callbackParamList) {
-        return Boolean.FALSE;
+        HttpParam httpParam = new HttpParam();
+        httpParam.setRequestUrl("http://127.0.0.1:9000/job/callback");
+        httpParam.setRequestMethod(HttpUtil.POST);
+        httpParam.setRequestBody(JsonUtil.object2Json(callbackParamList));
+        httpParam.setHttpOptions(HttpOptions.build().contentType(HttpUtil.APPLICATION_JSON_VALUE));
+        ResponseResult<Boolean> responseResult = HttpUtil.httpRequest(httpParam, new TypeReference<ResponseResult<Boolean>>() {
+        });
+        return Optional.ofNullable(responseResult).map(ResponseResult::getData).orElse(Boolean.FALSE);
     }
 }
