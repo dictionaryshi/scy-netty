@@ -134,6 +134,7 @@ public class Job implements Runnable {
                     CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
                         try {
                             handler.execute();
+                            JobContext.handleResult(JobContext.CODE_SUCCESS, null);
                         } catch (Exception exception) {
                             JobLogUtil.log(MessageUtil.format("job execute exception", exception));
                             JobContext.handleResult(JobContext.CODE_FAIL, ExceptionUtil.getExceptionMessage(exception));
@@ -147,6 +148,7 @@ public class Job implements Runnable {
                 }
             } else {
                 handler.execute();
+                JobContext.handleResult(JobContext.CODE_SUCCESS, null);
             }
 
             JobLogUtil.log(MessageUtil.format("job end", "triggerParam", triggerParam, StringUtil.COST, System.currentTimeMillis() - startTime));
@@ -173,7 +175,7 @@ public class Job implements Runnable {
                     CallbackParam callbackParam = new CallbackParam(logId, System.currentTimeMillis(), JobContext.getJobContext().getCode(), JobContext.getJobContext().getMsg());
                     CallbackTask.pushCallBack(callbackParam);
                 } else {
-                    CallbackParam callbackParam = new CallbackParam(logId, System.currentTimeMillis(), JobContext.CODE_FAIL,
+                    CallbackParam callbackParam = new CallbackParam(logId, System.currentTimeMillis(), JobContext.getJobContext().getCode(),
                             MessageUtil.format("job running, killed", "stopReason", stopReason));
                     CallbackTask.pushCallBack(callbackParam);
                 }
