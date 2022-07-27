@@ -2,6 +2,7 @@ package com.scy.netty.rpc;
 
 import com.scy.netty.client.ClientConfig;
 import com.scy.netty.client.NettyClient;
+import com.scy.netty.mq.MqService;
 import com.scy.netty.rpc.consumer.Consumer;
 import com.scy.netty.rpc.provider.Provider;
 import com.scy.zookeeper.config.RegisterCenter;
@@ -36,5 +37,10 @@ public class RpcConfig {
     @Bean
     public Consumer consumer(ClientConfig clientConfig, RegisterCenter registerCenter) {
         return new Consumer(clientConfig, registerCenter);
+    }
+
+    @Bean
+    public MqService mqService() {
+        return new MqService();
     }
 }
