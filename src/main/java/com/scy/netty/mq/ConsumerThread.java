@@ -39,6 +39,8 @@ public class ConsumerThread implements Runnable {
 
     private String uuid;
 
+    private Thread thread;
+
     public ConsumerThread() {
     }
 
@@ -75,6 +77,8 @@ public class ConsumerThread implements Runnable {
 
     @Override
     public void run() {
+        thread = Thread.currentThread();
+
         int waitTime = 0;
 
         while (!JvmStatus.JVM_CLOSE_FLAG) {
