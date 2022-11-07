@@ -91,7 +91,7 @@ public class ConsumerThread implements Runnable {
                     continue;
                 }
 
-                List<MqMessage> messageList = null;
+                List<MqMessage> messageList = mqService.pull(consumer.topic(), consumer.group(), mqActiveInfo.getRank(), mqActiveInfo.getTotal());
                 if (CollectionUtil.isEmpty(messageList)) {
                     waitTime = Math.min((waitTime + 10_000), 60_000);
                     ThreadUtil.quietSleep(waitTime);
