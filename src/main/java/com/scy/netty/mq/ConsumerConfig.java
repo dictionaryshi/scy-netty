@@ -1,11 +1,19 @@
 package com.scy.netty.mq;
 
 import com.scy.core.CollectionUtil;
+import com.scy.core.StringUtil;
+import com.scy.core.exception.BusinessException;
+import com.scy.core.format.MessageUtil;
+import com.scy.core.reflect.ClassUtil;
 import com.scy.zookeeper.ZkClient;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,6 +30,8 @@ public class ConsumerConfig implements ApplicationContextAware {
     private ZkClient zkClient;
 
     private MqService mqService;
+
+    public static final List<ConsumerThread> CONSUMER_THREADS = new ArrayList<>();
 
     public ConsumerConfig() {
     }
@@ -42,5 +52,28 @@ public class ConsumerConfig implements ApplicationContextAware {
                 .filter(serviceBean -> serviceBean instanceof MqConsumer)
                 .map(serviceBean -> (MqConsumer) serviceBean)
                 .collect(Collectors.toList());
+
+        validConsumer(consumerList);
+    }
+
+    @SuppressWarnings(ClassUtil.UNCHECKED)
+    private void validConsumer(List<MqConsumer> consumerList) {
+        consumerList.forEach(consumer -> {
+            Consumer annotation = consumer.getClass().getAnnotation(Consumer.class);
+            if (StringUtil.isEmpty(annotation.group())) {
+                try {
+                    InvocationHandler invocationHandler = Proxy.getInvocationHandler(annotation);
+                    Field field = invocationHandler.getClass().getDeclaredField("memberValues");
+                    field.setAccessible(Boolean.TRUE);
+
+                    Map<String, Object> memberValues = (Map<String, Object>) field.get(invocationHandler);
+                    memberValues.put("group", Consumer.DEFAULT_GROUP);
+                } catch (Exception e) {
+                    throw new BusinessException(MessageUtil.format("group empty and generator error", e, "consumer", consumer.getClass().getName()));
+                }
+            }
+
+            CONSUMER_THREADS.add(new ConsumerThread(zkClient, mqService, consumer));
+        });
     }
 }
