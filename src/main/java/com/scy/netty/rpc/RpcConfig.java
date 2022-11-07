@@ -2,9 +2,11 @@ package com.scy.netty.rpc;
 
 import com.scy.netty.client.ClientConfig;
 import com.scy.netty.client.NettyClient;
+import com.scy.netty.mq.ConsumerConfig;
 import com.scy.netty.mq.MqService;
 import com.scy.netty.rpc.consumer.Consumer;
 import com.scy.netty.rpc.provider.Provider;
+import com.scy.zookeeper.ZkClient;
 import com.scy.zookeeper.config.RegisterCenter;
 import org.springframework.context.annotation.Bean;
 
@@ -42,5 +44,10 @@ public class RpcConfig {
     @Bean
     public MqService mqService() {
         return new MqService();
+    }
+
+    @Bean
+    public ConsumerConfig consumerConfig(ZkClient zkClient, MqService mqService) {
+        return new ConsumerConfig(zkClient, mqService);
     }
 }
