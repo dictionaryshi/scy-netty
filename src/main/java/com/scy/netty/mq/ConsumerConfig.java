@@ -37,7 +37,7 @@ public class ConsumerConfig implements ApplicationContextAware, DisposableBean {
 
     public static final List<ConsumerThread> CONSUMER_THREADS = new ArrayList<>();
 
-    public static final ThreadPoolExecutor CONSUMER_EXECUTOR = ThreadPoolUtil.getThreadPool("mq-consumer", 1, 30, 1024);
+    public static final ThreadPoolExecutor CONSUMER_EXECUTOR = ThreadPoolUtil.getThreadPool("mq-consumer", 10, 30, 1024);
 
     public ConsumerConfig() {
     }
