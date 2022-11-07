@@ -2,12 +2,19 @@ package com.scy.netty.mq;
 
 import com.scy.core.CollectionUtil;
 import com.scy.core.UUIDUtil;
+import com.scy.core.enums.JvmStatus;
+import com.scy.core.exception.ExceptionUtil;
+import com.scy.core.format.MessageUtil;
+import com.scy.core.net.NetworkInterfaceUtil;
+import com.scy.core.thread.ThreadUtil;
+import com.scy.core.trace.TraceUtil;
 import com.scy.zookeeper.ZkClient;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.TreeSet;
 
 /**
@@ -68,5 +75,66 @@ public class ConsumerThread implements Runnable {
 
     @Override
     public void run() {
+        int waitTime = 0;
+
+        while (!JvmStatus.JVM_CLOSE_FLAG) {
+            try {
+                TraceUtil.setTraceId(null);
+
+                MqActiveInfo mqActiveInfo = getMqActiveInfo();
+                if (Objects.isNull(mqActiveInfo)) {
+                    ThreadUtil.quietSleep(3000);
+                    continue;
+                }
+
+                List<MqMessage> messageList = null;
+                if (CollectionUtil.isEmpty(messageList)) {
+                    waitTime = Math.min((waitTime + 10_000), 60_000);
+                    ThreadUtil.quietSleep(waitTime);
+                    continue;
+                }
+
+                waitTime = 0;
+
+                for (MqMessage mqMessage : messageList) {
+                    // double check
+                    MqActiveInfo newMqActiveInfo = getMqActiveInfo();
+                    if (Objects.isNull(newMqActiveInfo) || !Objects.equals(newMqActiveInfo.getRank(), mqActiveInfo.getRank()) || !Objects.equals(newMqActiveInfo.getTotal(), mqActiveInfo.getTotal())) {
+                        break;
+                    }
+
+                    // lock message
+                    String appendLog = MessageUtil.format("message lock", "ip", NetworkInterfaceUtil.getIp(), "mqActiveInfo", newMqActiveInfo);
+
+                    int lockRet = 0;
+                    if (lockRet < 1) {
+                        continue;
+                    }
+
+                    MqResult mqResult;
+                    try {
+                        // consume message
+                        mqResult = mqConsumer.consume(mqMessage.getData());
+
+                        if (Objects.isNull(mqResult)) {
+                            mqResult = MqResult.FAIL;
+                        }
+                    } catch (Exception e) {
+                        String errorMsg = ExceptionUtil.getExceptionMessageWithTraceId(e);
+                        mqResult = new MqResult(Boolean.FALSE, errorMsg);
+                    }
+
+                    // callback
+                    mqMessage.setStatus(mqResult.isSuccess() ? MessageStatusEnum.SUCCESS.getStatus() : MessageStatusEnum.FAIL.getStatus());
+
+                    String log = MessageUtil.format("message consume",
+                            "result", mqResult.isSuccess(), "ip", NetworkInterfaceUtil.getIp(), "mqActiveInfo", newMqActiveInfo, "content", mqResult.getContent());
+                    mqMessage.setLog(log);
+                }
+            } catch (Exception e) {
+            } finally {
+                TraceUtil.clearTrace();
+            }
+        }
     }
 }
