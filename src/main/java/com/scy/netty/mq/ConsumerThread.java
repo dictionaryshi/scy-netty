@@ -14,6 +14,7 @@ import com.scy.zookeeper.ZkClient;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.zookeeper.CreateMode;
 
 import java.util.List;
 import java.util.Objects;
@@ -94,6 +95,7 @@ public class ConsumerThread implements Runnable {
 
                 MqActiveInfo mqActiveInfo = getMqActiveInfo();
                 if (Objects.isNull(mqActiveInfo)) {
+                    zkClient.createNode("/mq/".concat(consumer.topic()).concat("/").concat(consumer.group()).concat("_").concat(uuid), StringUtil.EMPTY, CreateMode.EPHEMERAL);
                     ThreadUtil.quietSleep(3000);
                     continue;
                 }
