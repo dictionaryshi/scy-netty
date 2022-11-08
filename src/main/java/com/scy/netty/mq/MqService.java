@@ -52,4 +52,14 @@ public class MqService {
             return 0;
         }
     }
+
+    public int callbackMessage(long id, int status, String appendLog) {
+        Future<ResponseResult<Integer>> responseResultFuture = mqMessageService.callbackMessage(id, status, appendLog).getResponseResultFuture();
+        try {
+            return responseResultFuture.get(5000, TimeUnit.MILLISECONDS).getData();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
 }
