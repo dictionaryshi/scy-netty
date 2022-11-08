@@ -123,17 +123,19 @@ public class ConsumerThread implements Runnable {
                             mqResult = MqResult.FAIL;
                         }
                     } catch (Exception e) {
+                        e.printStackTrace();
                         String errorMsg = ExceptionUtil.getExceptionMessageWithTraceId(e);
                         mqResult = new MqResult(Boolean.FALSE, errorMsg);
                     }
 
                     // callback
-                    mqMessage.setStatus(mqResult.isSuccess() ? MessageStatusEnum.SUCCESS.getStatus() : MessageStatusEnum.FAIL.getStatus());
+                    int status = mqResult.isSuccess() ? MessageStatusEnum.SUCCESS.getStatus() : MessageStatusEnum.FAIL.getStatus();
 
                     String log = MessageUtil.format("message consume", "result", mqResult.isSuccess(), "content", mqResult.getContent());
-                    mqMessage.setLog(log);
+                    mqService.callbackMessage(mqMessage.getId(), status, log);
                 }
             } catch (Exception e) {
+                e.printStackTrace();
             } finally {
                 TraceUtil.clearTrace();
             }

@@ -24,4 +24,6 @@ public interface MqMessageService {
     ResponseResult<List<MqMessage>> pull(String topic, String group, int consumerRank, int consumerTotal);
 
     ResponseResult<Integer> lockMessage(long id, String appendLog);
+
+    ResponseResult<Integer> callbackMessage(long id, int status, String appendLog);
 }
