@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Objects;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * @author : shichunyang
@@ -58,6 +59,8 @@ public class ConsumerThread implements Runnable {
         if (CollectionUtil.isEmpty(groups)) {
             return null;
         }
+
+        groups = groups.stream().filter(group -> group.startsWith(consumer.group())).collect(Collectors.toList());
 
         TreeSet<String> groupSet = new TreeSet<>(groups);
 
