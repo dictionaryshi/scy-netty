@@ -42,4 +42,14 @@ public class MqService {
             return Collections.emptyList();
         }
     }
+
+    public int lockMessage(long id, String appendLog) {
+        Future<ResponseResult<Integer>> responseResultFuture = mqMessageService.lockMessage(id, appendLog).getResponseResultFuture();
+        try {
+            return responseResultFuture.get(5000, TimeUnit.MILLISECONDS).getData();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
 }

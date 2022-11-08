@@ -109,8 +109,7 @@ public class ConsumerThread implements Runnable {
 
                     // lock message
                     String appendLog = MessageUtil.format("message lock", "ip", NetworkInterfaceUtil.getIp(), "mqActiveInfo", newMqActiveInfo);
-
-                    int lockRet = 0;
+                    int lockRet = mqService.lockMessage(mqMessage.getId(), appendLog);
                     if (lockRet < 1) {
                         continue;
                     }
@@ -131,8 +130,7 @@ public class ConsumerThread implements Runnable {
                     // callback
                     mqMessage.setStatus(mqResult.isSuccess() ? MessageStatusEnum.SUCCESS.getStatus() : MessageStatusEnum.FAIL.getStatus());
 
-                    String log = MessageUtil.format("message consume",
-                            "result", mqResult.isSuccess(), "ip", NetworkInterfaceUtil.getIp(), "mqActiveInfo", newMqActiveInfo, "content", mqResult.getContent());
+                    String log = MessageUtil.format("message consume", "result", mqResult.isSuccess(), "content", mqResult.getContent());
                     mqMessage.setLog(log);
                 }
             } catch (Exception e) {

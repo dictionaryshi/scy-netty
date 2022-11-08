@@ -22,4 +22,6 @@ public interface MqMessageService {
      * 拉取消息
      */
     ResponseResult<List<MqMessage>> pull(String topic, String group, int consumerRank, int consumerTotal);
+
+    ResponseResult<Integer> lockMessage(long id, String appendLog);
 }
