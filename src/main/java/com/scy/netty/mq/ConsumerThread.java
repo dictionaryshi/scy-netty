@@ -1,6 +1,7 @@
 package com.scy.netty.mq;
 
 import com.scy.core.CollectionUtil;
+import com.scy.core.RandomUtil;
 import com.scy.core.StringUtil;
 import com.scy.core.UUIDUtil;
 import com.scy.core.enums.JvmStatus;
@@ -82,6 +83,8 @@ public class ConsumerThread implements Runnable {
     @Override
     public void run() {
         thread = Thread.currentThread();
+
+        ThreadUtil.quietSleep(RandomUtil.nextInt(20_000, 30_000));
 
         int waitTime = 0;
 
