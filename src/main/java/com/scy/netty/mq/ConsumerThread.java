@@ -1,6 +1,7 @@
 package com.scy.netty.mq;
 
 import com.scy.core.CollectionUtil;
+import com.scy.core.StringUtil;
 import com.scy.core.UUIDUtil;
 import com.scy.core.enums.JvmStatus;
 import com.scy.core.exception.ExceptionUtil;
@@ -124,7 +125,7 @@ public class ConsumerThread implements Runnable {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        String errorMsg = ExceptionUtil.getExceptionMessageWithTraceId(e);
+                        String errorMsg = StringUtil.replaceBr(ExceptionUtil.getExceptionMessageWithTraceId(e));
                         mqResult = new MqResult(Boolean.FALSE, errorMsg);
                     }
 
