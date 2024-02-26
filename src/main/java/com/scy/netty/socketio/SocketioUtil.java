@@ -79,6 +79,9 @@ public class SocketioUtil {
 
         server.addDisconnectListener(client -> SocketSessionUtil.unBindSession(client));
 
+        server.addEventInterceptor((client, eventName, args, ackRequest)
+                -> log.info(MessageUtil.format("eventInterceptor", "eventName", eventName, "args", args)));
+
         return server;
     }
 }
