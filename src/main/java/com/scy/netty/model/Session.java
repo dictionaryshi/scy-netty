@@ -1,8 +1,6 @@
 package com.scy.netty.model;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * @author : shichunyang
@@ -14,6 +12,8 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class Session {
 
     private String userId;

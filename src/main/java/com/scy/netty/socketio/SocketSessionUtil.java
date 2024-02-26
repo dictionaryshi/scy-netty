@@ -49,14 +49,15 @@ public class SocketSessionUtil {
             return Boolean.FALSE;
         }
 
-        if (hasLogin(channel)) {
+        if (isLogin(channel)) {
             Session session = getSession(channel);
             if (Objects.isNull(session)) {
                 log.error(MessageUtil.format("unBindSession error", "session", session));
                 return Boolean.FALSE;
             }
 
-            USER_ID_CHANNEL_MAP.remove(session.getUserId());
+            // 原子删除, 等同于 USER_ID_CHANNEL_MAP.remove(session.getUserId());
+            USER_ID_CHANNEL_MAP.computeIfPresent(session.getUserId(), (k, v) -> null);
 
             channel.del(SESSION);
 
@@ -69,8 +70,8 @@ public class SocketSessionUtil {
     /**
      * 判断是否已经登陆
      */
-    public static boolean hasLogin(SocketIOClient channel) {
-        return Objects.nonNull(getSession(channel));
+    public static boolean isLogin(SocketIOClient channel) {
+        return channel.has(SESSION);
     }
 
     /**
